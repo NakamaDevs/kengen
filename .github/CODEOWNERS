@@ -1,4 +1,13 @@
+# NakamaDevs owns fork-specific repository and delivery controls.
+/.branch-policy @NakamaDevs/devs
+/.nakama/ @NakamaDevs/devs
+/AGENTS.md @NakamaDevs/devs
+
+# Preserve upstream ownership guidance below for upstream-compatible code.
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
-* @openfga/backend
-README.md @openfga/product @openfga/community @openfga/backend
-pkg/storage/ @openfga/backend @openfga/be-storage-maintainers
+* @NakamaDevs/devs
+
+# Upstream ownership remains advisory in this fork.
+# Upstream: * @openfga/backend
+# Upstream: README.md @openfga/product @openfga/community @openfga/backend
+# Upstream: pkg/storage/ @openfga/backend @openfga/be-storage-maintainers

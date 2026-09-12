@@ -1,0 +1,25 @@
+[tools]
+go = "1.26.8"
+golangci-lint = "2.13.2"
+
+[settings]
+locked = true
+
+[tasks."verify:quick"]
+description = "Validate pinned lint tooling and run the upstream unit test gate."
+run = [
+  "mise run test:lint-tool-pin",
+  "make test",
+]
+
+[tasks."test:lint-tool-pin"]
+description = "Validate the immutable lint tool pin."
+run = "bash tests/ci/test_lint_tool_pin.sh"
+
+[tasks.verify]
+description = "Run the upstream test and lint gates."
+run = [
+  "mise run test:lint-tool-pin",
+  "make test",
+  "make lint",
+]
