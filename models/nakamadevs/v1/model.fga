@@ -1,0 +1,32 @@
+model
+  schema 1.1
+
+type user
+
+type organization
+  relations
+    define owner: [user]
+    define administrator: [user] or owner
+    define editor: [user] or administrator
+    define commenter: [user] or editor
+    define viewer: [user, user:*] or commenter
+
+type keikaku_node
+  relations
+    define organization: [organization]
+    define parent: [keikaku_node]
+    define owner: [user] or owner from parent or owner from organization
+    define administrator: [user] or owner or administrator from parent or administrator from organization
+    define editor: [user] or administrator or editor from parent or editor from organization
+    define commenter: [user] or editor or commenter from parent or commenter from organization
+    define viewer: [user, user:*] or commenter or viewer from parent or viewer from organization
+
+type article
+  relations
+    define organization: [organization]
+    define parent: [article]
+    define owner: [user] or owner from parent or owner from organization
+    define administrator: [user] or owner or administrator from parent or administrator from organization
+    define editor: [user] or administrator or editor from parent or editor from organization
+    define commenter: [user] or editor or commenter from parent or commenter from organization
+    define viewer: [user, user:*] or commenter or viewer from parent or viewer from organization
