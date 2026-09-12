@@ -1,25 +1,72 @@
 [tools]
 go = "1.26.8"
 golangci-lint = "2.13.2"
+actionlint = "1.7.10"
+gitleaks = "8.30.0"
+trivy = "0.69.2"
 
 [settings]
 locked = true
 
 [tasks."verify:quick"]
-description = "Validate pinned lint tooling and run the upstream unit test gate."
+description = "Validate pinned tooling, fork CI gates, and upstream unit tests."
 run = [
   "mise run test:lint-tool-pin",
-  "make test",
+  "mise run test:ci-gates",
+  "mise run test:local-quality-gates",
+  "make test-unit",
 ]
 
 [tasks."test:lint-tool-pin"]
 description = "Validate the immutable lint tool pin."
 run = "bash tests/ci/test_lint_tool_pin.sh"
 
+[tasks."test:ci-gates"]
+description = "Validate the safe GitHub Actions fork boundary."
+run = [
+  "bash tests/ci/test_safe_fork_gates.sh",
+  "bash tests/ci/test_divergence_manifest_attribution.sh",
+  "bash tests/ci/test_pr3_review_requirements.sh",
+  "bash tests/ci/test_pr3_security_hardening.sh",
+  "bash tests/ci/test_push_main_verification.sh",
+  "actionlint .github/workflows/safe-fork-gates.yml",
+]
+
+[tasks."test:local-quality-gates"]
+description = "Validate immutable local quality gate pins."
+run = "bash tests/ci/test_local_quality_gates.sh"
+
+[tasks."scan:secrets"]
+description = "Scan complete reachable Git history for secrets."
+run = "gitleaks git --config .gitleaks.toml --redact --no-banner"
+
+[tasks."scan:secrets:staged"]
+description = "Scan staged changes for secrets."
+run = "gitleaks protect --staged --config .gitleaks.toml --redact --no-banner"
+
+[tasks."test:secret-canary"]
+description = "Confirm that secret scanning rejects a synthetic credential."
+run = "bash tests/ci/test_secret_scan_canary.sh"
+
+[tasks."review:dependencies"]
+description = "Review dependency vulnerabilities and licenses."
+run = "trivy fs --scanners vuln,license --exit-code 1 --quiet ."
+
+[tasks."check:upstream-compatibility"]
+description = "Check the fork integration boundary against upstream-compatible files."
+run = "bash scripts/validate-upstream-compatibility.sh"
+
 [tasks.verify]
-description = "Run the upstream test and lint gates."
+description = "Run fork CI, upstream test, and lint gates."
 run = [
   "mise run test:lint-tool-pin",
+  "mise run test:ci-gates",
+  "mise run test:local-quality-gates",
+  "mise run scan:secrets",
+  "mise run scan:secrets:staged",
+  "mise run test:secret-canary",
+  "mise run review:dependencies",
+  "mise run check:upstream-compatibility",
   "make test",
   "make lint",
 ]

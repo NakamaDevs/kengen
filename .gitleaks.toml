@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Grafana panel identifiers match the generic API key rule."
+regexTarget = "match"
+regexes = [
+  '''Q-52ee0e33-980f-4a19-9821-39530de9f304-0''',
+]

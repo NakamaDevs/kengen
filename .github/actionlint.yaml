@@ -1,0 +1,4 @@
+self-hosted-runner:
+  labels:
+    - nakama-linux-x64
+    - nakama-untrusted-metadata-linux-x64
