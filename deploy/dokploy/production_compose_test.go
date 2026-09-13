@@ -3,7 +3,6 @@ package dokploy_test
 import (
 	"os"
 	"os/exec"
-	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -41,8 +40,7 @@ type service struct {
 func loadProductionCompose(t *testing.T) (compose, string) {
 	t.Helper()
 
-	path := filepath.Join(productionComposePath)
-	contents, err := os.ReadFile(path)
+	contents, err := os.ReadFile(productionComposePath)
 	require.NoError(t, err)
 
 	var deployment compose

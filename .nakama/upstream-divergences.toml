@@ -163,3 +163,7 @@ issue = "NAK-903"
 [[approved_path]]
 path = "docs/deploy/dokploy.md"
 issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/production_compose_test.go"
+issue = "NAK-903"
