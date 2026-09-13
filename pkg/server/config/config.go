@@ -1,3 +1,5 @@
+// Modified by NakamaDevs for NAK-908: optional OIDC service client-ID configuration.
+
 // Package config contains all knobs and defaults used to configure features of
 // OpenFGA when running as a standalone server.
 package config
@@ -222,11 +224,12 @@ type AuthnConfig struct {
 
 // AuthnOIDCConfig defines configurations for the 'oidc' method of authentication.
 type AuthnOIDCConfig struct {
-	Issuer         string
-	IssuerAliases  []string
-	Subjects       []string
-	Audience       string
-	ClientIDClaims []string
+	Issuer           string
+	IssuerAliases    []string
+	Subjects         []string
+	Audience         string
+	ClientIDClaims   []string
+	AllowedClientIDs []string
 }
 
 // AuthnPresharedKeyConfig defines configurations for the 'preshared' method of authentication.

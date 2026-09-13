@@ -1,3 +1,5 @@
+// Modified by NakamaDevs for NAK-908: test optional OIDC client-ID restrictions.
+
 package oidc
 
 import (
@@ -518,6 +520,7 @@ type Config struct {
 	issuerAliases      []string
 	subjects           []string
 	clientIDClaims     []string
+	allowedClientIDs   []string
 	jwtClaims          jwt.MapClaims
 	privateKeyOverride *rsa.PrivateKey
 }
@@ -533,7 +536,7 @@ func quickConfigSetup(c Config) (*RemoteOidcAuthenticator, context.Context, Conf
 	fetchJWKs = fetchKeysMock(publicKey, c.jwkKid)
 
 	// Initialize RemoteOidcAuthenticator
-	oidc, err := NewRemoteOidcAuthenticator(c.issuerURL, c.issuerAliases, c.audience, c.subjects, c.clientIDClaims)
+	oidc, err := NewRemoteOidcAuthenticator(c.issuerURL, c.issuerAliases, c.audience, c.subjects, c.clientIDClaims, c.allowedClientIDs...)
 	if err != nil {
 		return nil, nil, c, err
 	}

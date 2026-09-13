@@ -1,3 +1,5 @@
+// Modified by NakamaDevs for NAK-908: optional service client-ID allowlist.
+
 package oidc
 
 import (
@@ -25,11 +27,12 @@ import (
 )
 
 type RemoteOidcAuthenticator struct {
-	MainIssuer     string
-	IssuerAliases  []string
-	Audience       string
-	Subjects       []string
-	ClientIDClaims []string
+	MainIssuer       string
+	IssuerAliases    []string
+	Audience         string
+	Subjects         []string
+	ClientIDClaims   []string
+	AllowedClientIDs []string
 
 	JwksURI string
 	JWKs    *keyfunc.JWKS
@@ -53,7 +56,7 @@ var (
 var _ authn.Authenticator = (*RemoteOidcAuthenticator)(nil)
 var _ authn.OIDCAuthenticator = (*RemoteOidcAuthenticator)(nil)
 
-func NewRemoteOidcAuthenticator(mainIssuer string, issuerAliases []string, audience string, subjects []string, clientIDClaims []string) (*RemoteOidcAuthenticator, error) {
+func NewRemoteOidcAuthenticator(mainIssuer string, issuerAliases []string, audience string, subjects []string, clientIDClaims []string, allowedClientIDs ...string) (*RemoteOidcAuthenticator, error) {
 	// both issuer and audience are StringOrURI values (RFC 7519 §4.1.1, §4.1.3); whitespace is valid, so only reject strictly empty
 	if mainIssuer == "" {
 		return nil, ErrMissingIssuer
@@ -65,12 +68,13 @@ func NewRemoteOidcAuthenticator(mainIssuer string, issuerAliases []string, audie
 	client := retryablehttp.NewClient()
 	client.Logger = nil
 	oidc := &RemoteOidcAuthenticator{
-		MainIssuer:     mainIssuer,
-		IssuerAliases:  issuerAliases,
-		Audience:       audience,
-		Subjects:       subjects,
-		httpClient:     client.StandardClient(),
-		ClientIDClaims: clientIDClaims,
+		MainIssuer:       mainIssuer,
+		IssuerAliases:    issuerAliases,
+		Audience:         audience,
+		Subjects:         subjects,
+		httpClient:       client.StandardClient(),
+		ClientIDClaims:   clientIDClaims,
+		AllowedClientIDs: slices.Clone(allowedClientIDs),
 	}
 
 	// Client ID is:
@@ -158,6 +162,10 @@ func (oidc *RemoteOidcAuthenticator) Authenticate(requestContext context.Context
 		if ok {
 			break
 		}
+	}
+
+	if len(oidc.AllowedClientIDs) > 0 && (clientID == "" || !slices.Contains(oidc.AllowedClientIDs, clientID)) {
+		return nil, errInvalidClaims
 	}
 
 	principal := &authclaims.AuthClaims{

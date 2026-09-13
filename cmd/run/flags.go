@@ -1,3 +1,5 @@
+// Modified by NakamaDevs for NAK-908: bind the OIDC client-ID allowlist.
+
 package run
 
 import (
@@ -91,6 +93,9 @@ func bindRunFlagsFunc(flags *pflag.FlagSet) func(*cobra.Command, []string) {
 
 		util.MustBindPFlag("authn.oidc.clientIdClaims", flags.Lookup("authn-oidc-client-id-claims"))
 		util.MustBindEnv("authn.oidc.clientIdClaims", "OPENFGA_AUTHN_OIDC_CLIENT_ID_CLAIMS")
+
+		util.MustBindPFlag("authn.oidc.allowedClientIDs", flags.Lookup("authn-oidc-allowed-client-ids"))
+		util.MustBindEnv("authn.oidc.allowedClientIDs", "OPENFGA_AUTHN_OIDC_ALLOWED_CLIENT_IDS")
 
 		util.MustBindPFlag("datastore.engine", flags.Lookup("datastore-engine"))
 		util.MustBindEnv("datastore.engine", "OPENFGA_DATASTORE_ENGINE")
