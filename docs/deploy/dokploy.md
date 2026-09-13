@@ -30,6 +30,7 @@ in Compose files, Git, shell history, tickets, or chat.
 | `KENGEN_IMAGE_DIGEST` | Immutable Kengen image reference, including `@sha256:`. |
 | `KENGEN_OIDC_ISSUER` | HTTPS issuer URL for the Kagi/Keycloak realm. |
 | `KENGEN_OIDC_AUDIENCE` | Audience issued for the Kengen service identity. |
+| `KENGEN_OIDC_CLIENT_IDS` | Exact allowed service client IDs from the signed `azp` claim. |
 | `KENGEN_OIDC_SUBJECTS` | Non-secret allow-list of Kengen service identity subjects. |
 | `KENGEN_POSTGRES_PASSWORD` | Password for the Kengen PostgreSQL role. |
 
@@ -45,13 +46,26 @@ client-credentials flow from a trusted backend. Request a token with the
 configured Kengen audience. Set `KENGEN_OIDC_SUBJECTS` to that identity's exact
 `sub` claim. Send that service token to the raw Kengen API.
 
+Create a separate confidential client, such as `keikaku-kengen`, for these calls.
+Keep browser login on the existing `keikaku` client. Set
+`KENGEN_OIDC_CLIENT_IDS` to the service client ID. The production stack reads
+only the signed `azp` claim and rejects a missing or unlisted client ID.
+A matching audience and subject are still required.
+
+The optional server setting is `authn.oidc.allowedClientIDs`, with flag
+`--authn-oidc-allowed-client-ids` and environment variable
+`OPENFGA_AUTHN_OIDC_ALLOWED_CLIENT_IDS`. An empty server list preserves the
+upstream client policy. The production stack requires a nonempty list.
+
 `KENGEN_OIDC_SUBJECTS` is required. An empty OpenFGA OIDC subject list accepts
 every subject from a valid issuer. This stack must accept only the NAK-908
 service identity subject.
 
 To rotate the service identity, use this exact temporary value:
 `KENGEN_OIDC_SUBJECTS=<old-sub>,<new-sub>`. Validate the new client-credentials
-token. Then remove the old subject. Do not use spaces. Do not remove the current
+token. If rotation uses a new client ID, include both exact client IDs in
+`KENGEN_OIDC_CLIENT_IDS` during the overlap. Then remove the old subject and
+client ID. Do not use spaces. Do not remove the current
 subject before the new token works.
 
 Do not send browser tokens or end-user tokens to the raw Kengen API. A browser

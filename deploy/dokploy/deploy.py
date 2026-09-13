@@ -22,7 +22,7 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[2]
 HOST = "kengen.lecksfrawen.com"
 IMAGE = "localhost:5050/kengen"
-AUTH = ("KENGEN_OIDC_ISSUER", "KENGEN_OIDC_AUDIENCE", "KENGEN_OIDC_SUBJECTS")
+AUTH = ("KENGEN_OIDC_ISSUER", "KENGEN_OIDC_AUDIENCE", "KENGEN_OIDC_SUBJECTS", "KENGEN_OIDC_CLIENT_IDS")
 PASSWORD = "KENGEN_POSTGRES_PASSWORD"
 
 
@@ -81,8 +81,9 @@ def validate_runtime(values):
     issuer = urllib.parse.urlsplit(values[AUTH[0]])
     if issuer.scheme != "https" or not issuer.hostname or issuer.username or issuer.password or issuer.query or issuer.fragment:
         raise DeployError("KENGEN_OIDC_ISSUER must be an HTTPS issuer URL.")
-    if not re.fullmatch(r"[^\s,]+(?:,[^\s,]+)*", values[AUTH[2]]):
-        raise DeployError("KENGEN_OIDC_SUBJECTS must contain exact subjects without spaces.")
+    for key in AUTH[2:]:
+        if not re.fullmatch(r"[^\s,]+(?:,[^\s,]+)*", values[key]):
+            raise DeployError(key + " must contain exact values without spaces.")
 
 
 def verify_service(current, compose_id):

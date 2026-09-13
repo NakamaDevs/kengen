@@ -86,6 +86,8 @@ func TestProductionCompose_FailsClosedAndDoesNotPublishPrivateSurfaces(t *testin
 	require.Equal(t, oidcIssuer, kengen.Environment["OPENFGA_AUTHN_OIDC_ISSUER"])
 	require.Equal(t, oidcAudience, kengen.Environment["OPENFGA_AUTHN_OIDC_AUDIENCE"])
 	require.Equal(t, oidcSubjects, kengen.Environment["OPENFGA_AUTHN_OIDC_SUBJECTS"])
+	require.Equal(t, "azp", kengen.Environment["OPENFGA_AUTHN_OIDC_CLIENT_ID_CLAIMS"])
+	require.Equal(t, "${KENGEN_OIDC_CLIENT_IDS:?KENGEN_OIDC_CLIENT_IDS must be set}", kengen.Environment["OPENFGA_AUTHN_OIDC_ALLOWED_CLIENT_IDS"])
 	require.Equal(t, "false", kengen.Environment["OPENFGA_PLAYGROUND_ENABLED"])
 	require.Equal(t, "false", kengen.Environment["OPENFGA_METRICS_ENABLED"])
 	require.Equal(t, "false", kengen.Environment["OPENFGA_PROFILER_ENABLED"])
@@ -151,8 +153,24 @@ func productionValidation(issuer, subjects string) *exec.Cmd {
 		"KENGEN_OIDC_ISSUER="+issuer,
 		"KENGEN_OIDC_AUDIENCE=kengen-api",
 		"KENGEN_OIDC_SUBJECTS="+subjects,
+		"KENGEN_OIDC_CLIENT_IDS=keikaku-kengen",
 		"KENGEN_POSTGRES_PASSWORD=validation-password",
 	)
 
 	return command
+}
+
+func TestProductionValidation_ValidatesClientIDs(t *testing.T) {
+	for _, clients := range []string{"", "a, b", "a,,b", ",a", "a,"} {
+		t.Run(clients, func(t *testing.T) {
+			command := productionValidation("https://issuer.example", "service-sub")
+			for i, value := range command.Env {
+				if strings.HasPrefix(value, "KENGEN_OIDC_CLIENT_IDS=") {
+					command.Env[i] = "KENGEN_OIDC_CLIENT_IDS=" + clients
+				}
+			}
+			output, err := command.CombinedOutput()
+			require.Error(t, err, string(output))
+		})
+	}
 }

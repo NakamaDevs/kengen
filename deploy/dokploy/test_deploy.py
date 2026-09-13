@@ -20,7 +20,8 @@ def runtime():
     return {"KENGEN_POSTGRES_PASSWORD": secrets.token_urlsafe(32),
             "KENGEN_OIDC_ISSUER": "https://auth.example.test/realms/test",
             "KENGEN_OIDC_AUDIENCE": "kengen",
-            "KENGEN_OIDC_SUBJECTS": "service-sub"}
+            "KENGEN_OIDC_SUBJECTS": "service-sub",
+            "KENGEN_OIDC_CLIENT_IDS": "keikaku-kengen"}
 
 
 class FakeAPI:
@@ -144,12 +145,13 @@ class DeploymentTests(unittest.TestCase):
 
     def test_invalid_authentication_stops_before_writes(self):
         for key, value in [("KENGEN_OIDC_ISSUER", "http://auth.test"),
-                           ("KENGEN_OIDC_SUBJECTS", "a, b"), ("KENGEN_OIDC_AUDIENCE", "")]:
+                           ("KENGEN_OIDC_CLIENT_IDS", ""), ("KENGEN_OIDC_CLIENT_IDS", "a, b"),
+                           ("KENGEN_OIDC_CLIENT_IDS", "a,,b"), ("KENGEN_OIDC_SUBJECTS", "a, b"), ("KENGEN_OIDC_AUDIENCE", "")]:
             api = FakeAPI()
             values = runtime()
             values[key] = value
             api.current["env"] = deploy.render_env(values)
-            with tempfile.TemporaryDirectory() as folder:
+            with tempfile.TemporaryDirectory() as folder, patch.object(deploy, "check_health"), patch.object(deploy.time, "sleep"):
                 with self.assertRaises(deploy.DeployError):
                     deploy.deploy(api, "kengen-id", DIGEST, {}, Path(folder))
             self.assertEqual(api.writes, [])
