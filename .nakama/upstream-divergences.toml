@@ -1,0 +1,9 @@
+schema_version = 1
+
+[[approved_path]]
+path = "go.mod"
+issue = "NAK-909"
+
+[[approved_path]]
+path = "go.sum"
+issue = "NAK-909"
