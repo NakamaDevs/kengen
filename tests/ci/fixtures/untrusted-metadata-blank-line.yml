@@ -1,0 +1,32 @@
+name: Safe fork gates
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  trusted-verification:
+    if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')
+    runs-on: nakama-linux-x64
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: mise run verify
+
+  untrusted-metadata:
+    if: github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository)
+    runs-on: nakama-untrusted-metadata-linux-x64
+    steps:
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ""
+
+      - name: Unsafe blank-line escape
+        run: mise run verify
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+  safe-fork-gate:
+    needs: [trusted-verification, untrusted-metadata]
