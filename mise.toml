@@ -15,6 +15,7 @@ run = [
   "mise run test:lint-tool-pin",
   "mise run test:ci-gates",
   "mise run test:local-quality-gates",
+  "mise run test:dependency-policy",
   "make test-unit",
 ]
 
@@ -51,7 +52,7 @@ run = "bash tests/ci/test_secret_scan_canary.sh"
 
 [tasks."review:dependencies"]
 description = "Review dependency vulnerabilities and licenses."
-run = "trivy fs --scanners vuln,license --exit-code 1 --quiet ."
+run = "/usr/bin/python3 -B scripts/review_dependencies.py"
 
 [tasks."check:upstream-compatibility"]
 description = "Check the fork integration boundary against upstream-compatible files."
@@ -64,6 +65,7 @@ run = [
   "mise run test:lint-tool-pin",
   "mise run test:ci-gates",
   "mise run test:local-quality-gates",
+  "mise run test:dependency-policy",
   "mise run scan:secrets",
   "mise run scan:secrets:staged",
   "mise run test:secret-canary",
@@ -80,3 +82,7 @@ run = "/usr/bin/python3 -B -m unittest discover -s deploy/dokploy -p 'test_*.py'
 [tasks."deploy:dokploy"]
 description = "Build a reviewed ARM64 release and deploy it through Dokploy on hdbmm."
 run = "/usr/bin/python3 -B deploy/dokploy/deploy.py"
+
+[tasks."test:dependency-policy"]
+description = "Test the dependency review boundary."
+run = "/usr/bin/python3 -B -m unittest discover -s tests/licenses"

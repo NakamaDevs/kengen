@@ -20,9 +20,11 @@ grep -Fq '[tasks."scan:secrets"]' "${mise_file}" || fail "secret scan task is mi
 [[ -f "${repository_root}/.gitleaks.toml" ]] || fail "secret scan allowlist is missing"
 grep -Fq 'gitleaks git --config .gitleaks.toml --redact --no-banner' "${mise_file}" || fail "secret scan task changed"
 grep -Fq '[tasks."review:dependencies"]' "${mise_file}" || fail "dependency and license review task is missing"
-grep -Fq 'trivy fs --scanners vuln,license --exit-code 1 --quiet .' "${mise_file}" || fail "dependency and license review task changed"
+grep -Fq '/usr/bin/python3 -B scripts/review_dependencies.py' "${mise_file}" || fail "dependency and license review task changed"
 grep -Fq '[tasks."check:upstream-compatibility"]' "${mise_file}" || fail "upstream compatibility task is missing"
 grep -Fq 'bash scripts/validate-upstream-compatibility.sh' "${mise_file}" || fail "upstream compatibility task changed"
 grep -Fq 'mise run scan:secrets' "${mise_file}" || fail "full gate omits secret scanning"
 grep -Fq 'mise run review:dependencies' "${mise_file}" || fail "full gate omits dependency and license review"
 grep -Fq 'mise run check:upstream-compatibility' "${mise_file}" || fail "full gate omits upstream compatibility"
+
+grep -Fq 'mise run test:dependency-policy' "${mise_file}" || fail "dependency policy tests are missing"
