@@ -11,6 +11,7 @@ locked = true
 [tasks."verify:quick"]
 description = "Validate pinned tooling, fork CI gates, and upstream unit tests."
 run = [
+  "mise run test:deploy",
   "mise run test:lint-tool-pin",
   "mise run test:ci-gates",
   "mise run test:local-quality-gates",
@@ -29,7 +30,7 @@ run = [
   "bash tests/ci/test_pr3_review_requirements.sh",
   "bash tests/ci/test_pr3_security_hardening.sh",
   "bash tests/ci/test_push_main_verification.sh",
-  "actionlint .github/workflows/safe-fork-gates.yml",
+  "actionlint .github/workflows/*.yml",
 ]
 
 [tasks."test:local-quality-gates"]
@@ -59,6 +60,7 @@ run = "bash scripts/validate-upstream-compatibility.sh"
 [tasks.verify]
 description = "Run fork CI, upstream test, and lint gates."
 run = [
+  "mise run test:deploy",
   "mise run test:lint-tool-pin",
   "mise run test:ci-gates",
   "mise run test:local-quality-gates",
@@ -70,3 +72,11 @@ run = [
   "make test",
   "make lint",
 ]
+
+[tasks."test:deploy"]
+description = "Test Mac mini deployment guards without Docker or credentials."
+run = "/usr/bin/python3 -B -m unittest discover -s deploy/dokploy -p 'test_*.py'"
+
+[tasks."deploy:dokploy"]
+description = "Build a reviewed ARM64 release and deploy it through Dokploy on hdbmm."
+run = "/usr/bin/python3 -B deploy/dokploy/deploy.py"

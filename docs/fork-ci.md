@@ -4,7 +4,14 @@ Kengen is a NakamaDevs fork of `openfga/openfga`.
 The upstream workflows are stored in `.github/upstream-workflows-disabled`.
 GitHub Actions ignores this directory.
 
-Only `.github/workflows/safe-fork-gates.yml` can run after Actions are enabled.
+The active workflow directory contains `safe-fork-gates.yml`, `release.yml`, and
+`deploy.yml`. The release caller uses the deployment workflow from `main`.
+Deployment also requires `KENGEN_DEPLOY_APPROVED=true` and the protected
+`kengen-production` environment. The dedicated `nakama-kengen-deploy` group
+must allow only this repository and
+`NakamaDevs/kengen/.github/workflows/deploy.yml@refs/heads/main`.
+Its registration uses the existing `hdbmm` macOS ARM64 host and OrbStack.
+See [the deployment runbook](deploy/dokploy.md) for activation and rollback.
 Repository administrators must keep Actions disabled until they approve this boundary.
 NAK-902 does not enable Actions or change runner groups.
 

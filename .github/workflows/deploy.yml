@@ -1,0 +1,73 @@
+# NakamaDevs integration (NAK-903). OPS-283 must approve the Mac mini registration.
+name: Deploy Kengen
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+    secrets:
+      DOKPLOY_API_KEY:
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Reviewed release tag on main (for example v1.0.0)
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: kengen-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'NakamaDevs/kengen' && vars.KENGEN_DEPLOY_APPROVED == 'true'
+    runs-on:
+      group: nakama-kengen-deploy
+      labels: [self-hosted, macOS, ARM64, host-hdbmm]
+    environment: kengen-production
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+      DOCKER_HOST: unix:///Users/hdb/.orbstack/run/docker.sock
+    steps:
+      - name: Read deployment code from main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check the release commit
+        run: /usr/bin/python3 -B deploy/dokploy/deploy.py --check-ref --tag "$RELEASE_TAG"
+      - name: Prepare the Mac mini tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(hostname -s)" = hdbmm
+          test "$(uname -sm)" = 'Darwin arm64'
+          export DOCKER_CONFIG="$RUNNER_TEMP/kengen-docker"
+          export MISE_DATA_DIR="$RUNNER_TEMP/kengen-mise"
+          export MISE_CACHE_DIR="$RUNNER_TEMP/kengen-mise-cache"
+          printf 'DOCKER_CONFIG=%s\nMISE_DATA_DIR=%s\nMISE_CACHE_DIR=%s\n' "$DOCKER_CONFIG" "$MISE_DATA_DIR" "$MISE_CACHE_DIR" >> "$GITHUB_ENV"
+          mkdir -p "$DOCKER_CONFIG"
+          printf '{}\n' > "$DOCKER_CONFIG/config.json"
+          ln -sfn /Users/hdb/.docker/cli-plugins "$DOCKER_CONFIG/cli-plugins"
+          mise trust --yes "$GITHUB_WORKSPACE/mise.toml"
+          mise install go golangci-lint actionlint gitleaks trivy
+          docker version --format '{{.Server.Os}}/{{.Server.Arch}}'
+          test "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" = linux/arm64
+      - name: Check deployment behavior
+        run: mise run test:deploy
+      - name: Build and deploy the release
+        env:
+          DOKPLOY_URL: http://localhost:3000
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          KENGEN_DOKPLOY_COMPOSE_ID: ${{ vars.KENGEN_DOKPLOY_COMPOSE_ID }}
+          KENGEN_DEPLOY_APPROVED: 'true'
+        run: mise run deploy:dokploy -- --tag "$RELEASE_TAG"

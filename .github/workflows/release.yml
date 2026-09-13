@@ -1,0 +1,18 @@
+# Run the deployment workflow from main, even when the release uses an older tag.
+name: Release Kengen to Dokploy
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: github.repository == 'NakamaDevs/kengen' && !github.event.release.prerelease && vars.KENGEN_DEPLOY_APPROVED == 'true'
+    uses: NakamaDevs/kengen/.github/workflows/deploy.yml@main
+    with:
+      tag: ${{ github.event.release.tag_name }}
+    secrets:
+      DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
