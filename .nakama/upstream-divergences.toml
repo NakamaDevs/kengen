@@ -139,3 +139,31 @@ issue = "NAK-902"
 [[approved_path]]
 path = "tests/ci/test_secret_scan_canary.sh"
 issue = "NAK-902"
+
+[[approved_path]]
+path = ".github/workflows/deploy.yml"
+issue = "NAK-903"
+
+[[approved_path]]
+path = ".github/workflows/release.yml"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/deploy.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/test_deploy.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/test_workflows.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "docs/deploy/dokploy.md"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/production_compose_test.go"
+issue = "NAK-903"

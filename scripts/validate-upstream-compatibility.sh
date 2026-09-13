@@ -13,7 +13,10 @@ fail() {
 grep -Fqx 'module github.com/openfga/openfga' go.mod || fail "Go module path changed"
 grep -Fq 'Apache License' LICENSE || fail "Apache-2.0 license is missing"
 [[ -f "${manifest_file}" ]] || fail "reviewed divergence manifest is missing"
-mapfile -t approved_paths < <(
+approved_paths=()
+while IFS= read -r approved_path; do
+  approved_paths+=("${approved_path}")
+done < <(
   awk -F ' = ' '
     /^\[\[approved_path\]\]$/ { path = ""; issue = "" }
     $1 == "path" { gsub(/"/, "", $2); path = $2 }

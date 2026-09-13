@@ -12,7 +12,13 @@ fail() {
 
 [[ -f "${workflow_file}" ]] || fail "missing trusted workflow"
 [[ -d "${repository_root}/.github/upstream-workflows-disabled" ]] || fail "missing upstream workflow quarantine"
-[[ "$(find "${workflow_directory}" -maxdepth 1 -type f | wc -l | tr -d ' ')" == "1" ]] || fail "active workflow directory contains inherited workflows"
+while IFS= read -r candidate; do
+  case "$(basename "${candidate}")" in
+    safe-fork-gates.yml|deploy.yml|release.yml) ;;
+    *) fail "active workflow directory contains an unreviewed workflow" ;;
+  esac
+done < <(find "${workflow_directory}" -maxdepth 1 -type f)
+/usr/bin/python3 -B -m unittest discover -s "${repository_root}/deploy/dokploy" -p 'test_workflows.py'
 
 grep -Fqx 'permissions: {}' "${workflow_file}" || fail "default token permissions are not empty"
 grep -Fq "if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')" "${workflow_file}" || fail "trusted job lacks same-repository guard"

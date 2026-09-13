@@ -1,12 +1,20 @@
 # Kengen Dokploy production runbook
 
-This runbook deploys Kengen in Dokploy. It uses
+Kengen uses the existing Dokploy instance on the Mac mini `hdbmm`.
+The host runs macOS on Apple Silicon. OrbStack runs the Linux containers.
+The local registry is `localhost:5050`; the local Dokploy API is
+`http://localhost:3000`. Tailscale already connects this host to the tailnet.
+
+The release flow follows Keikaku at commit
+`40af71e3476262b8943062192930376e6f04eb74`. Kengen uses a Python standard-library
+deployment task with its own service identity checks. It uses
 `deploy/dokploy/production.compose.yaml` as raw Compose input.
 
 ## Scope and limits
 
-This change does not create DNS records. It does not deploy the stack. It does
-not enable GitHub Actions. It does not change runner groups.
+Installing this code does not deploy the stack, change DNS, enable GitHub
+Actions, or register a runner. The deployment task writes only to the Kengen
+Compose service after it checks the service name and app name.
 
 Dokploy routes HTTP to `kengen:8080` through its managed proxy. The Compose
 file has no host port mappings. PostgreSQL, gRPC, metrics, profiler, playground,
@@ -128,3 +136,111 @@ Approve the application image and PostgreSQL image changes separately. Update
 the pinned PostgreSQL digest only after testing its compatibility with a backup.
 Do not use mutable tags such as `latest` or a major-version tag without a
 digest. Take a fresh backup before every approved upgrade.
+
+## Mac mini release automation
+
+1. Merge the reviewed integration PR into protected `main`.
+2. Complete OPS-283 and NAK-902. Register a dedicated runner on `hdbmm` in
+   `nakama-kengen-deploy`, with labels `self-hosted`, `macOS`, `ARM64`, and
+   `host-hdbmm`. Keep Keikaku's existing registration in its current group.
+   Allow only `NakamaDevs/kengen` and the reusable workflow
+   `NakamaDevs/kengen/.github/workflows/deploy.yml@refs/heads/main`.
+   Do not allow untrusted pull requests to use this registration.
+3. Create the `kengen-production` GitHub environment with the required review
+   controls. Store `DOKPLOY_API_KEY` as a repository secret. Give this key only
+   the Dokploy access required for Kengen where the installed version supports it.
+4. Complete NAK-908. Set the required identity settings in the Kengen Dokploy
+   environment. The release runner uses those stored values. It has no service
+   account client secret and does not generate one.
+5. Create the Kengen Compose service with the initial configuration above. Use
+   name `kengen`, app-name prefix `nakamadevs-kengen-`, and the production
+   environment of project `NakamaDevs`. Record its ID in the repository variable
+   `KENGEN_DOKPLOY_COMPOSE_ID`. Never use Keikaku's ID or a shared `DOKPLOY_COMPOSE_ID`.
+6. Set Kengen DNS to the mini's tailnet address, `100.116.123.8`, following
+   Keikaku. Use the existing Traefik Cloudflare DNS challenge for TLS. Connect
+   Tailscale to reach the domain. Check the DNS record and certificate before
+   the first deployment.
+7. After the authentication and network review, set repository variable
+   `KENGEN_DEPLOY_APPROVED=true`. An administrator can enable Actions after
+   the runner boundary review. Keep this switch unset until then.
+8. Create a version tag such as `v1.0.0` on a reviewed commit on `main`, then
+   publish a non-prerelease GitHub release. `release.yml` calls `deploy.yml`
+   from `main`. A manual redeploy uses `deploy.yml` from `main` and a tag input.
+
+```sh
+gh workflow run deploy.yml --ref main -f tag=v1.0.0
+```
+
+The workflow checks the tag before it passes the Dokploy key to the task.
+The task checks that the tag resolves to a commit on `origin/main`. It creates
+an isolated Git worktree for that commit, runs the narrow upstream check and
+`mise run verify`, then builds `linux/arm64`. Trivy must accept the image before
+it is pushed. The task resolves the registry digest and verifies the image's
+platform and source-commit label before deployment.
+
+The runner must have Git, Mise, `/usr/bin/python3` (3.9 or later), the Docker
+CLI, and access to `/Users/hdb/.orbstack/run/docker.sock`. The workflow installs
+the repository's pinned Go and check tools in its own temporary Mise directory.
+It uses a Docker config without a login-keychain credential helper. Docker CLI
+plugins come from `/Users/hdb/.docker/cli-plugins`, as in Keikaku.
+
+The Mac mini can also run the task locally. Supply the approved configuration
+through the existing secret-management process. Do not put credentials on the
+command line. The local task requires `KENGEN_DEPLOY_APPROVED=true`.
+
+```sh
+mise run test:deploy
+mise run deploy:dokploy -- --tag v1.0.0
+```
+
+If the service ID is unset, the task finds exactly one `NakamaDevs` project and
+its `production` environment. It finds Kengen or creates it after the identity
+settings pass validation. A new service can receive a generated database
+password. An existing service with a missing database password stops deployment;
+restore the original value. Stored identity settings and credentials take
+precedence over local values. Only the selected image digest changes on a
+normal redeploy. Unknown environment keys are preserved.
+
+The task checks existing domain settings before an update. It refuses a route
+to another service or port. It adds the Kengen HTTP domain only when no domain
+exists. It never adds a host port mapping.
+
+## Deployment evidence and recovery
+
+Every update first creates an owner-only snapshot in
+`~/.kengen/dokploy-snapshots` (directory mode 0700, file mode 0600).
+Snapshots contain credentials. Keep them on the deployment host and in the
+approved encrypted backup store. Never upload them as CI artifacts.
+
+The task tracks a new deployment record with a unique title. It does not accept
+an old `done` status as success. An error, cancellation, unknown status, timeout,
+or failed HTTPS `/healthz` check fails the task. After the first release, use the
+NAK-908 identity to run an authenticated API check and confirm that a request
+without a token is refused. Observe health and logs before closing NAK-903.
+
+The upstream server has `/healthz`; this integration does not add `/readyz`.
+Resolve NAK-903's readiness criterion through a reviewed upstream-compatible
+change or an explicit issue decision before closing the issue.
+
+To restore the stored environment without starting a deployment:
+
+```sh
+mise run deploy:dokploy -- --restore-env /private/path/kengen-snapshot.json
+```
+
+Restore verifies both the current service and the snapshot against
+`KENGEN_DOKPLOY_COMPOSE_ID`, validates the stored settings, and saves the current
+state before it writes the old environment. It does not restore PostgreSQL data.
+Follow the database restore procedure above when the schema requires it.
+
+For an application rollback, use the previous reviewed tag and its recorded
+immutable image. The task pulls the digest and checks its platform and source
+commit. The image must have been built by this release task.
+
+```sh
+mise run deploy:dokploy -- --tag v1.0.0 --image 'localhost:5050/kengen@sha256:<recorded-digest>'
+```
+
+To stop automatic releases, unset `KENGEN_DEPLOY_APPROVED`, cancel a queued run,
+and remove Kengen's access to the dedicated runner group if required. This does
+not stop an already running container or change Keikaku's runner access.
