@@ -1,0 +1,61 @@
+# Dokploy production stack for Kengen. Dokploy supplies the public HTTP route
+# to the kengen service on port 8080. Do not add host port mappings here.
+services:
+  postgres:
+    image: postgres:17.9@sha256:2a0d0fe14825b0939f78a8cad5cd4e6aa68bf94d0e5dd96e24b6d23af4315545
+    environment:
+      POSTGRES_DB: kengen
+      POSTGRES_USER: kengen
+      POSTGRES_PASSWORD: ${KENGEN_POSTGRES_PASSWORD:?KENGEN_POSTGRES_PASSWORD must be set}
+    volumes:
+      - kengen-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=kengen --dbname=kengen"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  migrate:
+    image: ${KENGEN_IMAGE_DIGEST:?KENGEN_IMAGE_DIGEST must be an immutable image digest}
+    command: ["migrate"]
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://kengen@postgres:5432/kengen?sslmode=disable
+      OPENFGA_DATASTORE_PASSWORD: ${KENGEN_POSTGRES_PASSWORD:?KENGEN_POSTGRES_PASSWORD must be set}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  kengen:
+    image: ${KENGEN_IMAGE_DIGEST:?KENGEN_IMAGE_DIGEST must be an immutable image digest}
+    command: ["run"]
+    environment:
+      OPENFGA_AUTHN_METHOD: oidc
+      OPENFGA_AUTHN_OIDC_ISSUER: ${KENGEN_OIDC_ISSUER:?KENGEN_OIDC_ISSUER must be an HTTPS issuer URL}
+      OPENFGA_AUTHN_OIDC_AUDIENCE: ${KENGEN_OIDC_AUDIENCE:?KENGEN_OIDC_AUDIENCE must be set}
+      OPENFGA_AUTHN_OIDC_SUBJECTS: ${KENGEN_OIDC_SUBJECTS:?KENGEN_OIDC_SUBJECTS must be set}
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://kengen@postgres:5432/kengen?sslmode=disable
+      OPENFGA_DATASTORE_PASSWORD: ${KENGEN_POSTGRES_PASSWORD:?KENGEN_POSTGRES_PASSWORD must be set}
+      OPENFGA_GRPC_ADDR: 127.0.0.1:8081
+      OPENFGA_HTTP_ADDR: 0.0.0.0:8080
+      OPENFGA_LOG_FORMAT: json
+      OPENFGA_METRICS_ENABLED: "false"
+      OPENFGA_PLAYGROUND_ENABLED: "false"
+      OPENFGA_PROFILER_ENABLED: "false"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/grpc_health_probe", "-addr=127.0.0.1:8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+
+volumes:
+  kengen-postgres:
