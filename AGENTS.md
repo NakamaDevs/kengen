@@ -1,5 +1,23 @@
 # AGENTS.md
 
+## NakamaDevs delivery contract
+
+This repository is the public Kengen fork of `openfga/openfga`.
+Preserve upstream compatibility unless a Linear issue approves a divergence.
+
+Read `.nakama/repository.toml` and the linked Linear issue before edits.
+Use a pull request for every change to protected `main`.
+Use TDD and keep each commit small.
+Run the narrow upstream check before `mise run verify`.
+
+Do not run code from an untrusted fork on a persistent runner.
+GitHub Actions stay disabled until NAK-902 provides an approved runner boundary.
+Never place credentials in prompts, fixtures, logs, commits, or pull requests.
+
+Use ASD-STE100 Simplified Technical English for reader-facing text.
+Preserve the Apache-2.0 license and required upstream notices.
+Mark changed upstream files when Apache-2.0 requires it.
+
 This file provides guidance to AI coding agents when working with code in this repository.
 
 ## Project Overview

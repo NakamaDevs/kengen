@@ -1,0 +1,38 @@
+schema_version = 1
+repository = "NakamaDevs/kengen"
+kind = "fork"
+governance_version = "1.9.0"
+
+[skills]
+bundle = "NakamaDevs/skills"
+version = "1.0.0"
+source = "https://github.com/NakamaDevs/skills.git"
+revision = "907fbb1785e03ab91ac70d750e0b2e44521e6aa3"
+
+[upstream]
+repository = "openfga/openfga"
+branch = "main"
+patch_policy = "minimal"
+
+[linear]
+team = "NAK"
+project = "Kengen"
+
+[quality]
+quick = "mise run verify:quick"
+full = "mise run verify"
+hooks_install = "not available until NAK-902"
+
+[review]
+router = "nakama-review-change"
+
+[harness]
+agent_ready = false
+
+[ci]
+actions_enabled = false
+reason = "NAK-902 must define a safe runner boundary for public fork code."
+
+[deployment]
+host = "kengen.lecksfrawen.com"
+issue = "NAK-903"

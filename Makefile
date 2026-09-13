@@ -39,10 +39,6 @@ deps: ## Download dependencies
 	${call print, "Downloading dependencies"}
 	@go mod tidy && go mod vendor
 
-$(GO_BIN)/golangci-lint:
-	${call print, "Installing golangci-lint within ${GO_BIN}"}
-	@go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-
 $(GO_BIN)/mockgen:
 	${call print, "Installing mockgen within ${GO_BIN}"}
 	@go install -v go.uber.org/mock/mockgen@latest
@@ -75,9 +71,9 @@ install: ## Install the OpenFGA service within $GO_BIN. Ensure that $GO_BIN is a
 #-----------------------------------------------------------------------------------------------------------------------
 .PHONY: lint
 
-lint: $(GO_BIN)/golangci-lint ## Lint Go source files
+lint: ## Lint Go source files
 	${call print, "Linting Go source files"}
-	@golangci-lint run -v --fix -c .golangci.yaml ./...
+	@mise exec golangci-lint@2.13.2 -- golangci-lint run -v --fix -c .golangci.yaml ./...
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Tests
