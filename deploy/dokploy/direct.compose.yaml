@@ -1,0 +1,59 @@
+# Direct Dokploy deployment on hdbmm. Credentials stay in host-only files.
+services:
+  postgres:
+    image: postgres:17.9@sha256:2a0d0fe14825b0939f78a8cad5cd4e6aa68bf94d0e5dd96e24b6d23af4315545
+    environment:
+      POSTGRES_DB: kengen
+      POSTGRES_USER: kengen
+    env_file: [/Users/hdb/.local/share/dokploy/secrets/kengen/postgres.env]
+    volumes:
+      - kengen-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=kengen --dbname=kengen"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  migrate:
+    image: ${KENGEN_IMAGE_DIGEST:?KENGEN_IMAGE_DIGEST must be an immutable image digest}
+    command: ["migrate"]
+    env_file: [/Users/hdb/.local/share/dokploy/secrets/kengen/database.env]
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://kengen@postgres:5432/kengen?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  kengen:
+    image: ${KENGEN_IMAGE_DIGEST:?KENGEN_IMAGE_DIGEST must be an immutable image digest}
+    command: ["run"]
+    env_file:
+      - /Users/hdb/.local/share/dokploy/secrets/kengen/database.env
+      - /Users/hdb/.local/share/dokploy/secrets/kengen/auth.env
+    environment:
+      OPENFGA_AUTHN_METHOD: preshared
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://kengen@postgres:5432/kengen?sslmode=disable
+      OPENFGA_GRPC_ADDR: 127.0.0.1:8081
+      OPENFGA_HTTP_ADDR: 0.0.0.0:8080
+      OPENFGA_LOG_FORMAT: json
+      OPENFGA_METRICS_ENABLED: "false"
+      OPENFGA_PLAYGROUND_ENABLED: "false"
+      OPENFGA_PROFILER_ENABLED: "false"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/grpc_health_probe", "-addr=127.0.0.1:8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+
+volumes:
+  kengen-postgres:
