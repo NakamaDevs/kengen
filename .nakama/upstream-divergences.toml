@@ -203,3 +203,23 @@ issue = "NAK-908"
 [[approved_path]]
 path = "deploy/dokploy/validate-production.sh"
 issue = "NAK-908"
+
+[[approved_path]]
+path = "scripts/review_dependencies.py"
+issue = "NAK-911"
+
+[[approved_path]]
+path = "tests/licenses/test_dependency_policy.py"
+issue = "NAK-911"
+
+[[approved_path]]
+path = "docs/licenses/dependency-review.md"
+issue = "NAK-911"
+
+[[approved_path]]
+path = "THIRD_PARTY_NOTICES.md"
+issue = "NAK-911"
+
+[[approved_path]]
+path = "Dockerfile"
+issue = "NAK-911"
