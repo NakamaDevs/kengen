@@ -50,8 +50,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          export PATH="/Users/hdb/homelab/bin:/opt/homebrew/bin:$PATH"
-          printf '%s\n' /Users/hdb/homelab/bin /opt/homebrew/bin >> "$GITHUB_PATH"
+          export PATH="/Users/hdb/homelab/bin:/Users/hdb/.local/bin:/opt/homebrew/bin:$PATH"
+          printf '%s\n' /Users/hdb/homelab/bin /Users/hdb/.local/bin /opt/homebrew/bin >> "$GITHUB_PATH"
           test "$(hostname -s)" = hdbmm
           test "$(uname -sm)" = 'Darwin arm64'
           export DOCKER_CONFIG="$RUNNER_TEMP/kengen-docker"

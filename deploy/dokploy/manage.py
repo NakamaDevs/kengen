@@ -43,12 +43,12 @@ def source_commit(tag):
 
 
 def host_environment():
-    os.environ['PATH'] = '/Users/hdb/homelab/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:' + os.environ.get('PATH', '')
+    os.environ['PATH'] = '/Users/hdb/homelab/bin:/Users/hdb/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:' + os.environ.get('PATH', '')
     os.environ['DOCKER_HOST'] = 'unix:///Users/hdb/.orbstack/run/docker.sock'
     os.environ['DOCKER_CONFIG'] = '/Users/hdb/homelab/docker-config'
     os.environ['SSL_CERT_FILE'] = '/etc/ssl/cert.pem'
     # Do not load unrelated personal project hooks or vault-backed settings.
-    os.environ['MISE_IGNORED_CONFIG_PATHS'] = '/Users/hdb/.config/mise/config.toml:/Users/hdb/Developer/nakamadevs/mise.toml'
+    os.environ['MISE_IGNORED_CONFIG_PATHS'] = '/Users/hdb/.config/mise/config.toml:/Users/hdb/Developer/nakamadevs/mise.toml:' + HOST_ROOT + '/mise.local.toml'
 
 
 @contextmanager

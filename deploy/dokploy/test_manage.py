@@ -11,6 +11,12 @@ import manage
 
 
 class ManageTests(unittest.TestCase):
+    def test_host_tools_work_without_login_shell(self):
+        with patch.dict(os.environ, {'PATH': '/usr/bin:/bin'}, clear=True):
+            manage.host_environment()
+            self.assertIn('/Users/hdb/.local/bin', os.environ['PATH'].split(':'))
+            self.assertIn(manage.HOST_ROOT + '/mise.local.toml', os.environ['MISE_IGNORED_CONFIG_PATHS'])
+
     def test_build_context_uses_commit_instead_of_checkout(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
