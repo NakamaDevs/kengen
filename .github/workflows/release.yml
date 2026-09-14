@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   deploy:
-    if: github.repository == 'NakamaDevs/kengen' && !github.event.release.prerelease && vars.KENGEN_DEPLOY_APPROVED == 'true'
+    if: github.repository == 'NakamaDevs/kengen' && startsWith(github.event.release.tag_name, 'v') && !github.event.release.prerelease && vars.KENGEN_DEPLOY_APPROVED == 'true'
     uses: NakamaDevs/kengen/.github/workflows/deploy.yml@main
     with:
       tag: ${{ github.event.release.tag_name }}

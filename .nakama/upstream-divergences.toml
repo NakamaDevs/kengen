@@ -283,3 +283,31 @@ issue = "NAK-903"
 [[approved_path]]
 path = "tests/viewer/browser.cjs"
 issue = "NAK-903"
+
+[[approved_path]]
+path = "models/VERSION"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "internal/viewer/VERSION"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "scripts/component_versions.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "tests/releases/test_component_versions.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "docs/component-versioning.md"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "models/CHANGELOG.md"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "internal/viewer/CHANGELOG.md"
+issue = "NAK-903"

@@ -12,6 +12,7 @@ locked = true
 description = "Validate pinned tooling, fork CI gates, and upstream unit tests."
 run = [
   "mise run test:deploy",
+  "mise run test:versions",
   "mise run test:lint-tool-pin",
   "mise run test:ci-gates",
   "mise run test:local-quality-gates",
@@ -62,6 +63,7 @@ run = "bash scripts/validate-upstream-compatibility.sh"
 description = "Run fork CI, upstream test, and lint gates."
 run = [
   "mise run test:deploy",
+  "mise run test:versions",
   "mise run test:lint-tool-pin",
   "mise run test:ci-gates",
   "mise run test:local-quality-gates",
@@ -98,3 +100,19 @@ run = "python3 -B deploy/dokploy/manage.py --status"
 [tasks."test:dependency-policy"]
 description = "Test the dependency review boundary."
 run = "/usr/bin/python3 -B -m unittest discover -s tests/licenses"
+
+[tasks."test:versions"]
+description = "Test independent model and viewer version changes."
+run = "python3 -B -m unittest discover -s tests/releases"
+
+[tasks."version:show"]
+description = "Show independent model and viewer versions."
+run = "python3 -B scripts/component_versions.py show"
+
+[tasks."version:bump"]
+description = "Bump one component: models or viewer, then major, minor, or patch."
+run = "python3 -B scripts/component_versions.py bump"
+
+[tasks."version:tag"]
+description = "Create an immutable local release tag for models or viewer."
+run = "python3 -B scripts/component_versions.py tag"
