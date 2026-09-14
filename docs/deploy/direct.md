@@ -151,3 +151,17 @@ login rejection, filtering, pagination, models, examples, disconnect, and mobile
 layout. `mise run verify` passed with upstream tests scoped to
 `TestViewer|TestProduction`; the complete upstream suite was not repeated for
 the viewer addition. Changes are committed on local main without a new PR.
+
+## Visual model inspection (viewer 0.2.0)
+
+Open **Authorization models**, select a model ID, then choose an object type in
+the map or the Object type selector. The map links types accepted by direct
+relations. The relation cards show direct grants, computed relations, inherited
+relations, unions (`or`), intersections (`and`), and exclusions (`but not`).
+Type-reference buttons navigate to their type. Conditional grants include the
+condition name; expand Model conditions for expressions and parameters.
+Expand Model JSON to see the complete source response at any time.
+
+The visual model view is read-only and uses the same authenticated model API.
+It does not upload models, evaluate a particular user's access, or change tuples.
+The viewer version is 0.2.0; the model source release remains 1.0.0.

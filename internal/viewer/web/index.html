@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kengen · Tuple viewer</title>
   <link rel="stylesheet" href="/viewer/styles.css">
+  <script src="/viewer/model.js" defer></script>
   <script src="/viewer/app.js" defer></script>
 </head>
 <body>
@@ -38,7 +39,7 @@
           <p class="small muted">Leave filters empty to list all tuples. Use a full object, such as <code>document:readme</code>, or an object type, such as <code>document:</code>, together with a user.</p>
           <div class="table-card"><table><thead><tr><th>User</th><th>Relation</th><th>Object</th><th>Condition</th></tr></thead><tbody id="tuples"></tbody></table><p id="empty" class="empty">Select a store to view tuples.</p><div class="pagination"><span id="page-summary" class="small muted"></span><div><button id="previous" class="quiet" disabled>← Previous</button><button id="next" class="quiet" disabled>Next →</button></div></div></div>
         </section>
-        <section id="models-panel" role="tabpanel" aria-labelledby="models-tab" hidden><div class="model-controls"><label for="model-select">Authorization model</label><select id="model-select"></select><button id="more-models" class="quiet" hidden>Load more models</button></div><p id="model-summary" class="muted"></p><pre id="model-json" class="code-panel" tabindex="0"></pre></section>
+        <section id="models-panel" role="tabpanel" aria-labelledby="models-tab" hidden><div class="model-controls"><label for="model-select">Authorization model</label><select id="model-select"></select><button id="more-models" class="quiet" hidden>Load more models</button></div><p id="model-summary" class="muted"></p><div id="model-visual"></div><details><summary>Model JSON</summary><pre id="model-json" class="code-panel" tabindex="0"></pre></details></section>
         <section class="inspector"><div class="inspector-heading"><h2>API inspector</h2><span class="small muted">Examples use placeholder credentials</span></div><div class="example-controls"><label for="example-format">Request format</label><select id="example-format"><option value="http">HTTP</option><option value="curl">cURL</option><option value="grpc">gRPC</option></select><button id="copy" class="quiet">Copy example</button></div><pre id="request" class="code-panel" tabindex="0"></pre><p id="grpc-note" class="small muted" hidden>gRPC is available inside the deployment at port 8081. This HTTPS domain serves the JSON API. Set FGA_GRPC_ADDR to an endpoint you can reach.</p><details><summary>JSON response <span id="response-status"></span></summary><pre id="response" class="code-panel" tabindex="0"></pre></details><p class="small"><a href="https://openfga.dev/api/service" target="_blank" rel="noreferrer">Official API reference ↗</a> · <a href="https://openfga.dev/docs/interacting/relationship-queries" target="_blank" rel="noreferrer">How to query relationship tuples ↗</a></p></section>
       </section>
     </main>

@@ -311,3 +311,11 @@ issue = "NAK-903"
 [[approved_path]]
 path = "internal/viewer/CHANGELOG.md"
 issue = "NAK-903"
+
+[[approved_path]]
+path = "internal/viewer/web/model.js"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "tests/viewer/model.test.cjs"
+issue = "NAK-903"

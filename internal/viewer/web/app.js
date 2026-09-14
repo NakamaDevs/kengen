@@ -100,7 +100,7 @@
     state.store = store; state.models = []; state.modelToken = ''; state.filters = {};
     state.tokens = ['']; state.page = 0; state.next = '';
     $('query-form').reset(); $('model-select').replaceChildren(); $('model-json').textContent = '';
-    $('model-summary').textContent = ''; $('more-models').hidden = true;
+    $('model-summary').textContent = ''; $('model-visual').replaceChildren(); $('more-models').hidden = true;
     $('store-name').textContent = store.name || 'Unnamed store'; $('store-id').textContent = store.id;
     renderStores(); tab('tuples');
     await readTuples(0);
@@ -166,6 +166,7 @@
   }
   function showModel() {
     const model = state.models.find(item => item.id === $('model-select').value);
+    KengenModel.render($('model-visual'), model);
     $('model-json').textContent = model ? json(model) : 'No authorization models in this store.';
     $('model-summary').textContent = model ? 'Schema ' + model.schema_version + ' · ' + (model.type_definitions || []).length + ' types' : '';
   }
@@ -174,7 +175,7 @@
     state.stores = []; state.models = []; state.tokens = ['']; state.next = ''; state.storeToken = ''; state.modelToken = ''; state.request = null;
     $('api-key').value = ''; $('login').hidden = false; $('workspace').hidden = true; $('disconnect').hidden = true;
     $('connection').textContent = 'Not connected'; $('connection').className = 'status';
-    for (const id of ['tuples', 'model-select']) $(id).replaceChildren();
+    for (const id of ['tuples', 'model-select', 'model-visual']) $(id).replaceChildren();
     for (const id of ['response', 'request', 'model-json', 'store-id', 'store-name']) $(id).textContent = '';
     renderStores(); $('stores-hint').textContent = 'Connect to browse your stores.'; notice(); busy(false);
   }
@@ -195,7 +196,7 @@
   $('next').addEventListener('click', () => action(async () => { state.tokens[state.page + 1] = state.next; await readTuples(state.page + 1); }));
   $('previous').addEventListener('click', () => action(() => readTuples(state.page - 1)));
   $('tuples-tab').addEventListener('click', () => action(async () => { tab('tuples'); await readTuples(state.page); }));
-  $('models-tab').addEventListener('click', () => action(async () => { tab('models'); state.models = []; $('model-select').replaceChildren(); await loadModels(); }));
+  $('models-tab').addEventListener('click', () => action(async () => { tab('models'); state.models = []; $('model-select').replaceChildren(); $('model-visual').replaceChildren(); $('model-json').textContent = ''; await loadModels(); }));
   $('more-models').addEventListener('click', () => action(() => loadModels(state.modelToken)));
   $('model-select').addEventListener('change', showModel);
   $('example-format').addEventListener('change', renderExample);

@@ -14,7 +14,7 @@ func TestViewerAndAPIRouting(t *testing.T) {
 		w.WriteHeader(http.StatusUnauthorized)
 	})
 	handler := NewHandler(api)
-	for _, path := range []string{"/", "/viewer/app.js", "/viewer/styles.css"} {
+	for _, path := range []string{"/", "/viewer/app.js", "/viewer/model.js", "/viewer/styles.css"} {
 		r := httptest.NewRecorder()
 		handler.ServeHTTP(r, httptest.NewRequest(http.MethodGet, path, nil))
 		require.Equal(t, http.StatusOK, r.Code)

@@ -9,7 +9,7 @@ import (
 //go:embed web/*
 var files embed.FS
 
-// NewHandler serves the viewer's three static resources and delegates all API requests.
+// NewHandler serves the viewer's static resources and delegates all API requests.
 // Authentication remains with the API. No server credentials enter these resources.
 func NewHandler(api http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -17,6 +17,8 @@ func NewHandler(api http.Handler) http.Handler {
 		switch r.URL.Path {
 		case "/":
 			name, contentType = "index.html", "text/html; charset=utf-8"
+		case "/viewer/model.js":
+			name, contentType = "model.js", "text/javascript; charset=utf-8"
 		case "/viewer/app.js":
 			name, contentType = "app.js", "text/javascript; charset=utf-8"
 		case "/viewer/styles.css":

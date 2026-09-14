@@ -116,3 +116,7 @@ run = "python3 -B scripts/component_versions.py bump"
 [tasks."version:tag"]
 description = "Create an immutable local release tag for models or viewer."
 run = "python3 -B scripts/component_versions.py tag"
+
+[tasks."test:viewer"]
+description = "Test model visualization semantics (Node.js 18 or later)."
+run = "node --test tests/viewer/model.test.cjs"
