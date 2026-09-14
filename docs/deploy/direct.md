@@ -48,6 +48,18 @@ Activation requires the runner service, repository Actions, and
 `KENGEN_DEPLOY_APPROVED=true`. Keep workflows that need unavailable Linux
 runners disabled. Until activation is complete, use the local mise task.
 
+For unattended release deployment, the `kengen-production` environment must
+allow the `main` branch and `v*` release tags, with no required reviewer. A rule
+that allows only protected branches rejects release events because their ref
+is a tag. The deployment task still checks that the tag is on main.
+
+The remaining activation work is to publish local main, disable
+`safe-fork-gates.yml` in GitHub, set these environment rules, install and start
+the dedicated runner with its supplied `svc.sh`, enable Actions, and set the
+approval variable. Then run `deploy.yml` on main and check the completed run.
+Automatic approval review has blocked starting the runner under the older
+NAK-902 hold. Get an explicit replacement approval before activation.
+
 ## Runtime settings
 
 The API task uses `deploy/dokploy/direct.compose.yaml` as the raw Compose source.
