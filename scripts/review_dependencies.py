@@ -8,7 +8,7 @@ NOTICE_LICENSES = {"Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "MIT"}
 
 
 def _evaluate(report):
-    if report.get("SchemaVersion") != 2 or report.get("ArtifactType") != "filesystem":
+    if report.get("SchemaVersion") != 2 or report.get("ArtifactType") not in ("filesystem", "repository"):
         return ["Unsupported dependency report format."]
     results = report.get("Results")
     if not isinstance(results, list) or not results:

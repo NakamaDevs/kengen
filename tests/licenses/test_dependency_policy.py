@@ -26,6 +26,11 @@ class PolicyTests(unittest.TestCase):
     def test_exact_inherited_version(self):
         self.assertEqual(policy.evaluate(report()), [])
 
+    def test_git_repository_report(self):
+        data = report()
+        data['ArtifactType'] = 'repository'
+        self.assertEqual(policy.evaluate(data), [])
+
     def test_each_inherited_module(self):
         for name, version in policy.REVIEWED_MPL.items():
             data = report()
