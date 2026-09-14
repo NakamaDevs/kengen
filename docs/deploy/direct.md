@@ -85,10 +85,13 @@ a test store, writes a model and tuple, and checks both allowed and denied acces
 
 Dokploy service: `kengen` (`nakamadevs-kengen-s5isof`).
 Service ID: `Rngd-n1Wq6CMj3uPIe7Q_`.
-Application source: local main merge `0a160e6c`.
-Image: `localhost:5050/kengen@sha256:c3f4b5395e63adfbe58131db6ca0ab9f8abe52da8ee0017a72b54708b06c7217`.
+Application source: local main commit `b0b0c18a5595c48b6a7c7e933aabb1638ea4f7fd`.
+Image: `localhost:5050/kengen@sha256:fb774e70ad316a99eb807bf55bad688f413b5bc1fa6fae1c9761192ce337ae41`.
 
 Production deployment and the HTTPS smoke test passed on 2026-09-14 UTC.
+The image scan and the mise/API deployment both passed. The Dokploy key is
+cached on the MacBook and mini, backed up in 1Password, and set as a GitHub
+repository secret. Runner activation remains pending; Actions are disabled.
 The macOS system CA bundle is required by the mini's command-line Python.
 Do not disable certificate verification.
 

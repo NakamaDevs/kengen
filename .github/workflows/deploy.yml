@@ -69,7 +69,17 @@ jobs:
       - name: Check deployment behavior
         run: mise run test:deploy
       - name: Test upstream behavior
-        run: mise exec -- make test
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_ref=HEAD
+          if [ -n "$RELEASE_TAG" ]; then
+            source_ref="refs/tags/$RELEASE_TAG"
+          fi
+          source_dir="$(mktemp -d "$RUNNER_TEMP/kengen-tests.XXXXXX")"
+          trap 'rm -rf "$source_dir"' EXIT
+          git archive "$source_ref" | tar -xf - -C "$source_dir"
+          mise exec -- make -C "$source_dir" test
       - name: Build and deploy the release
         env:
           DOKPLOY_URL: http://localhost:3000
