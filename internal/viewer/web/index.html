@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kengen · Tuple viewer</title>
+  <link rel="stylesheet" href="/viewer/styles.css">
+  <script src="/viewer/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brandmark">K</span> Kengen <span class="brand-sub">/ Tuple viewer</span></a>
+    <div class="top-actions"><span id="connection" class="status">Not connected</span><a href="https://openfga.dev/api/service" target="_blank" rel="noreferrer">API docs ↗</a><button id="disconnect" class="quiet" hidden>Disconnect</button></div>
+  </header>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="eyebrow">WORKSPACE</div>
+      <h2>Stores <span id="store-count" class="count">0</span></h2>
+      <p id="stores-hint" class="muted small">Connect to browse your stores.</p>
+      <nav id="stores" aria-label="Stores"></nav>
+      <button id="more-stores" class="quiet full" hidden>Load more stores</button>
+      <div class="sidebar-footer"><span class="dot"></span> Read-only viewer<p>Powered by the OpenFGA API</p><a href="https://openfga.dev/docs" target="_blank" rel="noreferrer">OpenFGA documentation ↗</a></div>
+    </aside>
+    <main>
+      <section id="login" class="connect-card">
+        <div class="eyebrow">AUTHORIZATION, IN VIEW</div><h1>Explore your relationships.</h1>
+        <p>Browse stores, inspect models, and query the tuples that define access in Kengen.</p>
+        <form id="connect-form"><label for="api-key">Kengen API key</label><div class="input-row"><input id="api-key" type="password" autocomplete="off" spellcheck="false" required placeholder="Enter your API key"><button type="submit">Connect</button></div></form>
+        <p class="small muted">The key stays in this page's memory. Reload or disconnect to clear it. Use the Kengen API key, not the Dokploy key.</p>
+      </section>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+      <section id="workspace" hidden>
+        <div class="page-heading"><div><div class="eyebrow" id="store-name">STORE</div><h1>Relationship tuples</h1><p class="muted">Inspect who has access to what, and through which relation.</p></div><span class="readonly">READ ONLY</span></div>
+        <div id="store-id" class="mono muted small"></div>
+        <div class="tabs" role="tablist" aria-label="Store data"><button id="tuples-tab" role="tab" aria-selected="true" aria-controls="tuples-panel">Tuples</button><button id="models-tab" role="tab" aria-selected="false" aria-controls="models-panel">Authorization models</button></div>
+        <section id="tuples-panel" role="tabpanel" aria-labelledby="tuples-tab">
+          <form id="query-form" class="filters"><div><label for="filter-user">User</label><input id="filter-user" placeholder="user:alice" spellcheck="false"></div><div><label for="filter-relation">Relation</label><input id="filter-relation" placeholder="viewer" spellcheck="false"></div><div><label for="filter-object">Object</label><input id="filter-object" placeholder="document:readme" spellcheck="false"></div><button type="submit">Query tuples</button><button id="clear-filters" type="button" class="quiet">Clear</button></form>
+          <p class="small muted">Leave filters empty to list all tuples. Use a full object, such as <code>document:readme</code>, or an object type, such as <code>document:</code>, together with a user.</p>
+          <div class="table-card"><table><thead><tr><th>User</th><th>Relation</th><th>Object</th><th>Condition</th></tr></thead><tbody id="tuples"></tbody></table><p id="empty" class="empty">Select a store to view tuples.</p><div class="pagination"><span id="page-summary" class="small muted"></span><div><button id="previous" class="quiet" disabled>← Previous</button><button id="next" class="quiet" disabled>Next →</button></div></div></div>
+        </section>
+        <section id="models-panel" role="tabpanel" aria-labelledby="models-tab" hidden><div class="model-controls"><label for="model-select">Authorization model</label><select id="model-select"></select><button id="more-models" class="quiet" hidden>Load more models</button></div><p id="model-summary" class="muted"></p><pre id="model-json" class="code-panel" tabindex="0"></pre></section>
+        <section class="inspector"><div class="inspector-heading"><h2>API inspector</h2><span class="small muted">Examples use placeholder credentials</span></div><div class="example-controls"><label for="example-format">Request format</label><select id="example-format"><option value="http">HTTP</option><option value="curl">cURL</option><option value="grpc">gRPC</option></select><button id="copy" class="quiet">Copy example</button></div><pre id="request" class="code-panel" tabindex="0"></pre><p id="grpc-note" class="small muted" hidden>gRPC is available inside the deployment at port 8081. This HTTPS domain serves the JSON API. Set FGA_GRPC_ADDR to an endpoint you can reach.</p><details><summary>JSON response <span id="response-status"></span></summary><pre id="response" class="code-panel" tabindex="0"></pre></details><p class="small"><a href="https://openfga.dev/api/service" target="_blank" rel="noreferrer">Official API reference ↗</a> · <a href="https://openfga.dev/docs/interacting/relationship-queries" target="_blank" rel="noreferrer">How to query relationship tuples ↗</a></p></section>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

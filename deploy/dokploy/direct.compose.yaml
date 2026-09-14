@@ -35,6 +35,7 @@ services:
       - /Users/hdb/.local/share/dokploy/secrets/kengen/auth.env
     environment:
       OPENFGA_AUTHN_METHOD: preshared
+      KENGEN_VIEWER_ENABLED: "true"
       OPENFGA_DATASTORE_ENGINE: postgres
       OPENFGA_DATASTORE_URI: postgres://kengen@postgres:5432/kengen?sslmode=disable
       OPENFGA_GRPC_ADDR: 127.0.0.1:8081

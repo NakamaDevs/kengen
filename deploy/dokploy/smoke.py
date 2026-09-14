@@ -29,6 +29,9 @@ def main():
             return error.code, None
 
     assert request("GET", "/healthz", token=None)[0] == 200, "Health check failed"
+    with urllib.request.urlopen(args.url.rstrip('/') + '/', timeout=20) as response:
+        assert response.status == 200 and 'text/html' in response.headers.get('Content-Type', ''), "Viewer unavailable"
+        assert b'Kengen' in response.read(), "Viewer page missing"
     for token in (None, "invalid-smoke-test-key"):
         assert request("GET", "/stores", token=token)[0] in (401, 403), "Invalid access accepted"
     assert request("GET", "/stores")[0] == 200, "Authenticated access failed"
@@ -47,6 +50,10 @@ def main():
         tuple_key = {"user": "user:alice", "relation": "viewer", "object": "document:smoke"}
         assert request("POST", path + "/write", {
             "authorization_model_id": model_id, "writes": {"tuple_keys": [tuple_key]}})[0] == 200
+        status, result = request("POST", path + "/read", {"page_size": 50})
+        assert status == 200 and any(item['key'] == tuple_key for item in result['tuples']), "Viewer tuple query failed"
+        status, result = request("GET", path + "/authorization-models?page_size=50")
+        assert status == 200 and any(item['id'] == model_id for item in result['authorization_models']), "Viewer model query failed"
         for user, expected in (("alice", True), ("bob", False)):
             status, result = request("POST", path + "/check", {
                 "authorization_model_id": model_id,
@@ -55,7 +62,7 @@ def main():
             assert status == 200 and result["allowed"] is expected, "Authorization result failed"
     finally:
         assert request("DELETE", path)[0] == 204, "Test store cleanup failed"
-    print("PASS: health, rejected invalid access, authenticated store/model/tuple writes, allow/deny checks, cleanup.")
+    print("PASS: viewer, health, rejected invalid access, authenticated store/model/tuple reads and writes, allow/deny checks, cleanup.")
 
 
 if __name__ == "__main__":

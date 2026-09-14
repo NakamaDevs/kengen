@@ -259,3 +259,27 @@ issue = "NAK-903"
 [[approved_path]]
 path = "deploy/dokploy/test_manage.py"
 issue = "NAK-903"
+
+[[approved_path]]
+path = "internal/viewer/viewer.go"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "internal/viewer/viewer_test.go"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "internal/viewer/web/index.html"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "internal/viewer/web/styles.css"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "internal/viewer/web/app.js"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "tests/viewer/browser.cjs"
+issue = "NAK-903"

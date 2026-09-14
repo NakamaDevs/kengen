@@ -87,7 +87,7 @@ Connect Tailscale to use this endpoint, as with Keikaku.
 
 Check `/healthz`, an authenticated `/stores` request, and a request with an
 invalid key. The invalid key must be rejected. The database volume persists
-across normal redeployments. The API does not include a browser dashboard.
+across normal redeployments. The domain root serves the Kengen tuple viewer. All existing API routes stay available.
 
 Run the smoke test on the mini with
 `SSL_CERT_FILE=/etc/ssl/cert.pem /usr/bin/python3 /Users/hdb/homelab/kengen/smoke.py`. It creates and removes
@@ -113,4 +113,34 @@ The macOS system CA bundle is required by the mini's command-line Python.
 Do not disable certificate verification.
 
 The API key remains in `auth.env` on the mini. Use this file only in trusted
-backend processes. Do not put the key in browser code.
+backend processes or enter it in the trusted Kengen viewer. Do not embed the key in browser assets, source files, URLs, or request examples.
+
+## Tuple viewer
+
+The direct deployment sets `KENGEN_VIEWER_ENABLED=true`. This adds a read-only
+Kengen viewer at `/`, with assets under `/viewer/`. Other API routes and API-key
+authentication are unchanged. The setting is off by default in the binary.
+
+Connect with the Kengen preshared API key from `auth.env` on the mini. This is
+not the Dokploy API key. The page keeps it in memory only; reloading or selecting
+Disconnect clears it. No production key is included in the HTML or assets.
+
+The viewer lists stores and authorization models, reads tuples with optional
+filters, and follows continuation tokens. It shows HTTP, cURL, and internal
+gRPC request examples plus the JSON response. Examples use credential
+placeholders. Read queries require an object type and either an object ID or a
+user when a tuple filter is supplied. Leave all filters empty to read all tuples.
+The UI provides no write or delete controls.
+
+This is Kengen's viewer, not the official OpenFGA Playground. The official
+Playground cannot be hosted on a custom domain; see the
+[upstream limitations](https://openfga.dev/docs/getting-started/setup-openfga/playground).
+The viewer links to the official API reference and query documentation.
+
+For browser regression tests, build `./cmd/openfga` and start an in-memory
+instance on HTTP `127.0.0.1:18080`, gRPC `127.0.0.1:18081`, with the viewer enabled
+and preshared authentication using the synthetic key `viewer-local-test-token`.
+With Playwright installed for Node, run `node tests/viewer/browser.cjs`.
+The test uses loopback only, creates disposable data, checks pagination and
+models, and saves desktop/mobile screenshots in the system temporary directory.
+Set `CHROMIUM_PATH` if Chrome is not in its standard macOS location.

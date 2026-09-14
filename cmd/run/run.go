@@ -1,4 +1,4 @@
-// Modified by NakamaDevs for NAK-908: wire the optional OIDC client-ID allowlist.
+// Modified by NakamaDevs for NAK-908 and NAK-903: OIDC client IDs and an optional tuple viewer.
 
 // Package run contains the command to run an OpenFGA server.
 package run
@@ -64,6 +64,7 @@ import (
 	authnmw "github.com/openfga/openfga/internal/middleware/authn"
 	"github.com/openfga/openfga/internal/planner"
 	"github.com/openfga/openfga/internal/telemetry"
+	"github.com/openfga/openfga/internal/viewer"
 	"github.com/openfga/openfga/pkg/encoder"
 	"github.com/openfga/openfga/pkg/gateway"
 	"github.com/openfga/openfga/pkg/logger"
@@ -779,6 +780,9 @@ func (s *ServerContext) runHTTPServer(ctx context.Context, config *serverconfig.
 		return nil, err
 	}
 	handler := http.Handler(mux)
+	if os.Getenv("KENGEN_VIEWER_ENABLED") == "true" {
+		handler = viewer.NewHandler(handler)
+	}
 
 	if config.Trace.Enabled {
 		handler = otelhttp.NewHandler(handler, "grpc-gateway")
