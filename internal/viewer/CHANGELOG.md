@@ -1,5 +1,9 @@
 # Tuple viewer changes
 
+## 0.2.1
+
+- Label model choices and keep the selected model when switching tabs.
+
 ## 0.2.0
 
 - Add a clickable object-type map inside Authorization models.

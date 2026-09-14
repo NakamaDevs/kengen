@@ -158,7 +158,7 @@
       null, 'ReadAuthorizationModels', {store_id: state.store.id, page_size: 50, ...(continuation ? {continuation_token: continuation} : {})});
     state.models.push(...(data.authorization_models || [])); state.modelToken = data.continuation_token || '';
     for (const model of data.authorization_models || []) {
-      const option = document.createElement('option'); option.value = model.id; option.textContent = model.id;
+      const option = document.createElement('option'); option.value = model.id; option.textContent = (state.models[0]?.id === model.id ? 'Latest · ' : '') + model.id + ' · ' + (model.type_definitions || []).length + ' types';
       $('model-select').append(option);
     }
     $('more-models').hidden = !state.modelToken;
@@ -168,7 +168,7 @@
     const model = state.models.find(item => item.id === $('model-select').value);
     KengenModel.render($('model-visual'), model);
     $('model-json').textContent = model ? json(model) : 'No authorization models in this store.';
-    $('model-summary').textContent = model ? 'Schema ' + model.schema_version + ' · ' + (model.type_definitions || []).length + ' types' : '';
+    $('model-summary').textContent = model ? 'Showing ' + model.id + ' · Schema ' + model.schema_version + ' · ' + (model.type_definitions || []).length + ' types' : '';
   }
   function disconnect() {
     state.generation++; state.controller?.abort(); state.key = ''; state.store = null;
@@ -196,7 +196,7 @@
   $('next').addEventListener('click', () => action(async () => { state.tokens[state.page + 1] = state.next; await readTuples(state.page + 1); }));
   $('previous').addEventListener('click', () => action(() => readTuples(state.page - 1)));
   $('tuples-tab').addEventListener('click', () => action(async () => { tab('tuples'); await readTuples(state.page); }));
-  $('models-tab').addEventListener('click', () => action(async () => { tab('models'); state.models = []; $('model-select').replaceChildren(); $('model-visual').replaceChildren(); $('model-json').textContent = ''; await loadModels(); }));
+  $('models-tab').addEventListener('click', () => action(async () => { tab('models'); if (!state.models.length) await loadModels(); }));
   $('more-models').addEventListener('click', () => action(() => loadModels(state.modelToken)));
   $('model-select').addEventListener('change', showModel);
   $('example-format').addEventListener('change', renderExample);
