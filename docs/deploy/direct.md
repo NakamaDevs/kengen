@@ -97,14 +97,14 @@ a test store, writes a model and tuple, and checks both allowed and denied acces
 
 Dokploy service: `kengen` (`nakamadevs-kengen-s5isof`).
 Service ID: `Rngd-n1Wq6CMj3uPIe7Q_`.
-Application source: local main commit `b0b0c18a5595c48b6a7c7e933aabb1638ea4f7fd`.
-Image: `localhost:5050/kengen@sha256:fb774e70ad316a99eb807bf55bad688f413b5bc1fa6fae1c9761192ce337ae41`.
+Application source: local main commit `b19856e1cc4c0067ae9a51b66ef4de7abbd57685`.
+Image: `localhost:5050/kengen@sha256:e877f103f67391224c2e72e1999cd710a08492e8856ba170145c9ebbaef73d11`.
 
 Production deployment and the HTTPS smoke test passed on 2026-09-14 UTC.
 The image scan and the mise/API deployment both passed. The Dokploy key is
 cached on the MacBook and mini, backed up in 1Password, and set as a GitHub
 repository secret. Runner activation remains pending; Actions are disabled.
-The full upstream `make test` suite passed on the M1 mini. Local `make lint`
+Before the viewer addition, the full upstream `make test` suite passed on the M1 mini. Local `make lint`
 reported no issues. All 36 deployment tests and workflow syntax checks passed.
 Local `mise run verify` passed the repository checks but could not complete
 Docker tests on the MacBook, where the Docker daemon was unavailable; those
@@ -144,3 +144,10 @@ With Playwright installed for Node, run `node tests/viewer/browser.cjs`.
 The test uses loopback only, creates disposable data, checks pagination and
 models, and saves desktop/mobile screenshots in the system temporary directory.
 Set `CHROMIUM_PATH` if Chrome is not in its standard macOS location.
+
+The viewer deployment passed its image scan, root-page check, authenticated
+model and tuple reads, and authorization smoke test. Browser tests passed for
+login rejection, filtering, pagination, models, examples, disconnect, and mobile
+layout. `mise run verify` passed with upstream tests scoped to
+`TestViewer|TestProduction`; the complete upstream suite was not repeated for
+the viewer addition. Changes are committed on local main without a new PR.
