@@ -33,6 +33,7 @@ class VersionTests(unittest.TestCase):
     def test_component_release_tags_do_not_deploy_the_server(self):
         workflow = (Path(__file__).resolve().parents[2] / '.github/workflows/release.yml').read_text()
         self.assertIn("startsWith(github.event.release.tag_name, 'v')", workflow)
+        self.assertIn("!contains(github.event.release.tag_name, '/')", workflow)
 
     def test_component_tag_names(self):
         self.assertEqual(versions.tag_name('models', '1.0.0'), 'models/v1.0.0')
