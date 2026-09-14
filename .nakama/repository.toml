@@ -1,7 +1,7 @@
 schema_version = 1
 repository = "NakamaDevs/kengen"
 kind = "fork"
-governance_version = "1.9.0"
+governance_version = "2.1.0"
 
 [skills]
 bundle = "NakamaDevs/skills"
@@ -45,3 +45,7 @@ runner_group = "nakama-kengen-deploy"
 workflow = ".github/workflows/deploy.yml@refs/heads/main"
 registry = "localhost:5050"
 image_platform = "linux/arm64"
+
+[delivery]
+mode = "solo"
+profile = ".nakama/delivery.json"
