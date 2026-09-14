@@ -104,6 +104,11 @@ Production deployment and the HTTPS smoke test passed on 2026-09-14 UTC.
 The image scan and the mise/API deployment both passed. The Dokploy key is
 cached on the MacBook and mini, backed up in 1Password, and set as a GitHub
 repository secret. Runner activation remains pending; Actions are disabled.
+The full upstream `make test` suite passed on the M1 mini. Local `make lint`
+reported no issues. All 36 deployment tests and workflow syntax checks passed.
+Local `mise run verify` passed the repository checks but could not complete
+Docker tests on the MacBook, where the Docker daemon was unavailable; those
+tests passed in the mini run.
 The macOS system CA bundle is required by the mini's command-line Python.
 Do not disable certificate verification.
 
