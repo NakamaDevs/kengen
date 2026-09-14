@@ -51,7 +51,11 @@ def main():
         assert request("POST", path + "/write", {
             "authorization_model_id": model_id, "writes": {"tuple_keys": [tuple_key]}})[0] == 200
         status, result = request("POST", path + "/read", {"page_size": 50})
-        assert status == 200 and any(item['key'] == tuple_key for item in result['tuples']), "Viewer tuple query failed"
+        assert status == 200 and any(
+            all(item['key'].get(field) == value for field, value in tuple_key.items())
+            and item['key'].get('condition') is None
+            for item in result['tuples']
+        ), "Viewer tuple query failed"
         status, result = request("GET", path + "/authorization-models?page_size=50")
         assert status == 200 and any(item['id'] == model_id for item in result['authorization_models']), "Viewer model query failed"
         for user, expected in (("alice", True), ("bob", False)):
