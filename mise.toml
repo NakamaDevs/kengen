@@ -77,11 +77,23 @@ run = [
 
 [tasks."test:deploy"]
 description = "Test Mac mini deployment guards without Docker or credentials."
-run = "/usr/bin/python3 -B -m unittest discover -s deploy/dokploy -p 'test_*.py'"
+run = "python3 -B -m unittest discover -s deploy/dokploy -p 'test_*.py'"
 
 [tasks."deploy:dokploy"]
-description = "Build a reviewed ARM64 release and deploy it through Dokploy on hdbmm."
-run = "/usr/bin/python3 -B deploy/dokploy/deploy.py"
+description = "Build local main or a release tag on the M1 mini and deploy through Dokploy's API."
+run = "python3 -B deploy/dokploy/manage.py"
+
+[tasks."deploy:credentials"]
+description = "Cache the Dokploy key locally; read 1Password only when missing."
+run = "python3 -B deploy/dokploy/credentials.py"
+
+[tasks."deploy:credentials:save"]
+description = "Back up the cached Dokploy key to 1Password once."
+run = "python3 -B deploy/dokploy/credentials.py --save"
+
+[tasks."deploy:status"]
+description = "Check Dokploy and HTTPS health with the cached key."
+run = "python3 -B deploy/dokploy/manage.py --status"
 
 [tasks."test:dependency-policy"]
 description = "Test the dependency review boundary."

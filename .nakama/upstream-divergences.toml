@@ -223,3 +223,39 @@ issue = "NAK-911"
 [[approved_path]]
 path = "Dockerfile"
 issue = "NAK-911"
+
+[[approved_path]]
+path = ".dockerignore"
+issue = "NAK-903"
+
+[[approved_path]]
+path = ".gitignore"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/direct.compose.yaml"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/smoke.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "docs/deploy/direct.md"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/credentials.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/manage.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/test_credentials.py"
+issue = "NAK-903"
+
+[[approved_path]]
+path = "deploy/dokploy/test_manage.py"
+issue = "NAK-903"

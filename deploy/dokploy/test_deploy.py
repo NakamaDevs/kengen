@@ -60,6 +60,25 @@ class FakeAPI:
 
 
 class DeploymentTests(unittest.TestCase):
+    def test_preshared_redeploy_preserves_environment_and_uses_direct_compose(self):
+        api = FakeAPI()
+        api.current['env'] = "KENGEN_IMAGE_DIGEST='old'\nEXTRA='keep'\n"
+        with tempfile.TemporaryDirectory() as folder, patch.object(deploy, 'validate_direct_credentials'), patch.object(deploy, 'check_health'):
+            deploy.deploy(api, 'kengen-id', DIGEST, {}, Path(folder), auth_mode='preshared')
+        update = next(data for route, data in api.writes if route == 'compose.update')
+        env = deploy.parse_env(update['env'])
+        self.assertEqual(env, {'KENGEN_IMAGE_DIGEST': DIGEST, 'EXTRA': 'keep'})
+        self.assertIn('OPENFGA_AUTHN_METHOD: preshared', update['composeFile'])
+        self.assertNotIn('OPENFGA_AUTHN_OIDC', update['composeFile'])
+
+    def test_missing_direct_credentials_prevent_updates(self):
+        api = FakeAPI()
+        api.current['env'] = ''
+        with tempfile.TemporaryDirectory() as folder, patch.object(deploy, 'validate_direct_credentials', side_effect=deploy.DeployError('missing')):
+            with self.assertRaises(deploy.DeployError):
+                deploy.deploy(api, 'kengen-id', DIGEST, {}, Path(folder), auth_mode='preshared')
+        self.assertEqual(api.writes, [])
+
     def setUp(self):
         self.validation = patch.object(deploy, "validate_compose")
         self.validation.start()

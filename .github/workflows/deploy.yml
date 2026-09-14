@@ -1,11 +1,11 @@
-# NakamaDevs integration (NAK-903). OPS-283 must approve the Mac mini registration.
+# NakamaDevs integration: release deployment to the dedicated M1 runner.
 name: Deploy Kengen
 
 on:
   workflow_call:
     inputs:
       tag:
-        required: true
+        required: false
         type: string
     secrets:
       DOKPLOY_API_KEY:
@@ -13,8 +13,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Reviewed release tag on main (for example v1.0.0)
-        required: true
+        description: Release tag on main; leave empty to deploy main
+        required: false
         type: string
 
 permissions: {}
@@ -36,6 +36,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ inputs.tag }}
       DOCKER_HOST: unix:///Users/hdb/.orbstack/run/docker.sock
+      MISE_IGNORED_CONFIG_PATHS: /Users/hdb/.config/mise/config.toml:/Users/hdb/Developer/nakamadevs/mise.toml
     steps:
       - name: Read deployment code from main
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -44,16 +45,18 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Check the release commit
-        run: /usr/bin/python3 -B deploy/dokploy/deploy.py --check-ref --tag "$RELEASE_TAG"
+        run: /opt/homebrew/bin/python3 -B deploy/dokploy/manage.py --check-ref --tag "$RELEASE_TAG"
       - name: Prepare the Mac mini tools
         shell: bash
         run: |
           set -euo pipefail
+          export PATH="/Users/hdb/homelab/bin:/opt/homebrew/bin:$PATH"
+          printf '%s\n' /Users/hdb/homelab/bin /opt/homebrew/bin >> "$GITHUB_PATH"
           test "$(hostname -s)" = hdbmm
           test "$(uname -sm)" = 'Darwin arm64'
           export DOCKER_CONFIG="$RUNNER_TEMP/kengen-docker"
-          export MISE_DATA_DIR="$RUNNER_TEMP/kengen-mise"
-          export MISE_CACHE_DIR="$RUNNER_TEMP/kengen-mise-cache"
+          export MISE_DATA_DIR="/Users/hdb/Developer/runners/kengen-deploy-arm64/mise"
+          export MISE_CACHE_DIR="/Users/hdb/Developer/runners/kengen-deploy-arm64/mise-cache"
           printf 'DOCKER_CONFIG=%s\nMISE_DATA_DIR=%s\nMISE_CACHE_DIR=%s\n' "$DOCKER_CONFIG" "$MISE_DATA_DIR" "$MISE_CACHE_DIR" >> "$GITHUB_ENV"
           mkdir -p "$DOCKER_CONFIG"
           printf '{}\n' > "$DOCKER_CONFIG/config.json"
@@ -62,12 +65,16 @@ jobs:
           mise install go golangci-lint actionlint gitleaks trivy
           docker version --format '{{.Server.Os}}/{{.Server.Arch}}'
           test "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" = linux/arm64
+          python3 -c 'import tomllib'
       - name: Check deployment behavior
         run: mise run test:deploy
+      - name: Test upstream behavior
+        run: mise exec -- make test
       - name: Build and deploy the release
         env:
           DOKPLOY_URL: http://localhost:3000
           DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
           KENGEN_DOKPLOY_COMPOSE_ID: ${{ vars.KENGEN_DOKPLOY_COMPOSE_ID }}
           KENGEN_DEPLOY_APPROVED: 'true'
+          SSL_CERT_FILE: /etc/ssl/cert.pem
         run: mise run deploy:dokploy -- --tag "$RELEASE_TAG"

@@ -14,3 +14,12 @@ mise.toml
 .DS_Store
 
 vendor/
+
+# Machine-local configuration and credential caches.
+mise.local.*
+.mise.local.*
+mise.*.local.toml
+.mise.*.local.toml
+.env.local
+.env.*.local
+__pycache__/

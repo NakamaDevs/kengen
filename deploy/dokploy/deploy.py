@@ -24,6 +24,7 @@ HOST = "kengen.lecksfrawen.com"
 IMAGE = "localhost:5050/kengen"
 AUTH = ("KENGEN_OIDC_ISSUER", "KENGEN_OIDC_AUDIENCE", "KENGEN_OIDC_SUBJECTS", "KENGEN_OIDC_CLIENT_IDS")
 PASSWORD = "KENGEN_POSTGRES_PASSWORD"
+DIRECT_SECRET_DIR = Path('/Users/hdb/.local/share/dokploy/secrets/kengen')
 
 
 class DeployError(Exception):
@@ -92,8 +93,30 @@ def verify_service(current, compose_id):
         raise DeployError("The target service is not Kengen. No update was sent.")
 
 
-def merged_environment(current, defaults, image):
+def validate_direct_credentials(directory=DIRECT_SECRET_DIR):
+    if directory.is_symlink() or not directory.is_dir() or directory.stat().st_mode & 0o077:
+        raise DeployError('The Kengen credential directory is missing or not private.')
+    values = {}
+    for name, key in [('postgres.env', 'POSTGRES_PASSWORD'),
+                      ('database.env', 'OPENFGA_DATASTORE_PASSWORD'),
+                      ('auth.env', 'OPENFGA_AUTHN_PRESHARED_KEYS')]:
+        path = directory / name
+        if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
+            raise DeployError('The Kengen credential file is missing or not private: ' + name)
+        value = parse_env(path.read_text()).get(key, '')
+        if len(value) < 32 or any(c.isspace() for c in value):
+            raise DeployError('Invalid Kengen credential file: ' + name)
+        values[key] = value
+    if values['POSTGRES_PASSWORD'] != values['OPENFGA_DATASTORE_PASSWORD']:
+        raise DeployError('The Kengen database credential files do not match.')
+
+
+def merged_environment(current, defaults, image, auth_mode='oidc'):
     stored = parse_env(current.get("env") or "")
+    if auth_mode == 'preshared':
+        validate_direct_credentials()
+        stored['KENGEN_IMAGE_DIGEST'] = image
+        return render_env(stored)
     if stored and not stored.get(PASSWORD):
         raise DeployError("Restore the stored database password before deployment.")
     merged = dict(stored)
@@ -153,7 +176,7 @@ class API:
             raise DeployError("Dokploy " + route + " failed. Check the service locally.") from None
 
 
-def ensure_service(api, compose_id, defaults, image):
+def ensure_service(api, compose_id, defaults, image, auth_mode='oidc'):
     projects = api.call("GET", "project.all")
     projects = [p for p in projects if p.get("name", "").lower() == "nakamadevs"]
     if len(projects) != 1:
@@ -174,7 +197,7 @@ def ensure_service(api, compose_id, defaults, image):
     if services:
         return services[0]["composeId"]
     # Validate before the first write. A missing identity must not create a stack.
-    merged_environment({}, defaults, image)
+    merged_environment({}, defaults, image, auth_mode)
     result = api.call("POST", "compose.create", {"name": "kengen", "appName": "nakamadevs-kengen",
                      "environmentId": environment["environmentId"], "composeType": "docker-compose"})
     return result["composeId"]
@@ -206,30 +229,30 @@ def check_health(timeout=120):
         time.sleep(5)
 
 
-def validate_compose(env):
+def validate_compose(env, auth_mode='oidc'):
     with tempfile.TemporaryDirectory(prefix="kengen-compose-") as directory:
         path = Path(directory) / "runtime.env"
         fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as file:
             file.write(env)
         command(["docker", "compose", "--env-file", str(path), "-f",
-                 str(ROOT / "deploy/dokploy/production.compose.yaml"), "config", "--quiet"])
+                 str(ROOT / 'deploy/dokploy' / ('direct.compose.yaml' if auth_mode == 'preshared' else 'production.compose.yaml')), "config", "--quiet"])
 
 
-def deploy(api, compose_id, image, defaults, snapshot_dir, timeout=900):
+def deploy(api, compose_id, image, defaults, snapshot_dir, timeout=900, auth_mode='oidc'):
     validate_digest(image)
     current = api.call("GET", "compose.one", {"composeId": compose_id})
     verify_service(current, compose_id)
     if current.get("composeStatus") == "running":
         raise DeployError("A Kengen deployment is already running.")
-    env = merged_environment(current, defaults, image)
-    validate_compose(env)
+    env = merged_environment(current, defaults, image, auth_mode)
+    validate_compose(env, auth_mode)
     domains = api.call("GET", "domain.byComposeId", {"composeId": compose_id})
     check_domain(domains)
     previous = api.call("GET", "deployment.allByCompose", {"composeId": compose_id})
     previous_ids = {item["deploymentId"] for item in previous}
     snapshot(current, snapshot_dir)
-    compose_file = (ROOT / "deploy/dokploy/production.compose.yaml").read_text()
+    compose_file = (ROOT / 'deploy/dokploy' / ('direct.compose.yaml' if auth_mode == 'preshared' else 'production.compose.yaml')).read_text()
     api.call("POST", "compose.update", {"composeId": compose_id, "sourceType": "raw",
                                         "composeFile": compose_file, "env": env})
     if not domains:

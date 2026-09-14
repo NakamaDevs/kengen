@@ -4,3 +4,12 @@ testdata
 tests
 tools
 
+# NakamaDevs: never send local credentials or Git history to a build.
+.git
+mise.local.*
+.mise.local.*
+mise.*.local.toml
+.mise.*.local.toml
+.env.local
+.env.*.local
+**/__pycache__
