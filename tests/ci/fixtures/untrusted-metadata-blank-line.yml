@@ -2,31 +2,49 @@ name: Safe fork gates
 
 on:
   pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions: {}
 
 jobs:
   trusted-verification:
-    if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')
-    runs-on: nakama-linux-x64
+    if: github.event.repository.visibility == 'public'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Check out the code on a fresh hosted runner
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
           persist-credentials: false
-      - run: mise run verify
-
-  untrusted-metadata:
-    if: github.event_name == 'pull_request' && (github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository)
-    runs-on: nakama-untrusted-metadata-linux-x64
-    steps:
-      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      - name: Install the pinned verification toolchain
+        uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654
         with:
-          github-token: ""
+          version: 2026.7.17
+          install_args: --locked
+          cache: false
+      - name: Run the full verification gate
+        run: mise run verify
+
+  safe-fork-gate:
+    if: always() && github.event.repository.visibility == 'public'
+    needs: [trusted-verification]
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Record safe gate result
+        shell: bash
+        env:
+          VERIFICATION_RESULT: ${{ needs.trusted-verification.result }}
+        run: |
+          if [[ "${VERIFICATION_RESULT}" != "success" ]]; then
+            printf 'Code verification result is %s\n' "${VERIFICATION_RESULT}" >&2
+            exit 1
+          fi
+          printf 'Code verification completed successfully\n'
 
       - name: Unsafe blank-line escape
         run: mise run verify
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-
-  safe-fork-gate:
-    needs: [trusted-verification, untrusted-metadata]

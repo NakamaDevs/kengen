@@ -15,23 +15,40 @@ See [the deployment runbook](deploy/dokploy.md) for activation and rollback.
 Repository administrators must keep Actions disabled until they approve this boundary.
 NAK-902 does not enable Actions or change runner groups.
 
-Same-repository pull requests run `mise run verify` on `nakama-linux-x64`.
-The job guard checks the pull request head repository before runner assignment.
-The job has read-only contents access.
-Pushes to `main` use the same trusted verification after a merge.
+NAK-1010 moves CI to fixed `ubuntu-24.04` standard GitHub-hosted runners.
+Every CI job requires `github.event.repository.visibility == 'public'` before runner assignment.
+The aggregate uses `always()` with the same public guard.
+Private, internal, or missing visibility skips both jobs.
+Paid, larger, custom, and dynamically selected runners are not allowed in this CI workflow.
+Standard hosted runner usage is free for public repositories.
+See [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 
-Fork pull requests use `nakama-untrusted-metadata-linux-x64`.
-That job has no token permissions, checkout, command, secret, or local action.
-It uses one SHA-pinned GitHub-maintained metadata action with an empty token.
-It only records GitHub pull request metadata.
+Regular, Dependabot, and fork pull requests run `mise run verify` on fresh hosted VMs.
+Pushes to `main` and manual `workflow_dispatch` canaries run the same gate.
+The existing `trusted-verification` job identifier remains stable; it now verifies all pull request code.
+Each verification job has read-only contents access, full Git history, and no persisted checkout credentials.
+The workflow references no secrets, environments, deployment runners, or privileged pull request events.
+A SHA-pinned Mise action installs Mise `2026.7.17` and the complete locked toolchain.
+Tool caching is disabled. Tool versions and Linux x64 checksums come from `mise.toml` and `mise.lock`.
 
-Dependabot pull requests use the same metadata-only path.
-The aggregate check fails after metadata handling for Dependabot and external forks.
-OPS-283 must add an approved disposable Linux code runner before either can pass.
+The stable `safe-fork-gate` check depends on code verification.
+It fails for failed, cancelled, or skipped verification.
+It runs one fixed shell check without checkout, repository code, or a token.
+The dependency result enters through an environment variable, without expression interpolation in shell commands.
+The previous metadata-only fork and Dependabot block is removed.
+Fresh hosted VMs provide the CI isolation previously missing under NAK-902 and OPS-283.
+Independent review must accept this boundary before an administrator enables Actions.
 
-The stable `safe-fork-gate` check depends on both event jobs.
-It completes after trusted verification for internal pull requests and pushes.
-It completes after metadata handling for fork pull requests.
+Before enablement, disable the `deploy.yml` and `release.yml` workflows through GitHub workflow controls.
+Preserve `KENGEN_DEPLOY_APPROVED` and all production environment and runner restrictions.
+Confirm repository visibility is public and allow the pinned checkout and Mise actions.
+Keep fork tokens read-only, secrets unavailable, and the required fork approval policy enabled.
+After review, enable Actions and dispatch a canary from the reviewed CI revision.
+Require successful full verification and the aggregate before accepting the migration as operational.
+Then confirm regular, Dependabot, and fork pull request checks under their actual event contexts.
+A manual canary alone does not prove fork pull request behavior.
+Keep `safe-fork-gate` as the required aggregate check.
+This change does not enable Actions, edit deployment workflows, or change repository settings.
 
 Keep every GitHub Action pinned to a full commit SHA.
 Pin local tools to exact versions in `mise.toml`.

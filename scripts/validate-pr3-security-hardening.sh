@@ -12,13 +12,7 @@ fail() {
   exit 1
 }
 
-grep -Fq "github.event.pull_request.user.login == 'dependabot[bot]'" "${workflow_file}" || fail "Dependabot classification is missing"
-grep -Fq 'runs-on: nakama-untrusted-metadata-linux-x64' "${workflow_file}" || fail "blocked pull requests lack an isolated runner"
-grep -Fq 'persist-credentials: false' "${workflow_file}" || fail "checkout persists credentials"
-grep -Fq 'if: always()' "${workflow_file}" || fail "aggregate does not always run"
-grep -Fq 'needs: [trusted-verification, untrusted-metadata]' "${workflow_file}" || fail "aggregate does not depend on verification and metadata"
-grep -Fq "core.setFailed('Code verification is blocked until OPS-283 provides an approved disposable Linux runner')" "${workflow_file}" || fail "blocked metadata can make the aggregate green"
-grep -Fq 'core.setFailed(`Trusted verification result is ${trustedResult}`)' "${workflow_file}" || fail "aggregate accepts failed trusted verification"
+bash "${repository_root}/scripts/validate-safe-fork-gates.sh"
 
 grep -Fq 'regexTarget = "match"' "${gitleaks_file}" || fail "Gitleaks exception is not match-scoped"
 grep -Fq '[[allowlists]]' "${gitleaks_file}" || fail "Gitleaks exceptions are not scoped"

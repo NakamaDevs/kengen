@@ -58,7 +58,7 @@ issue = "NAK-902"
 
 [[approved_path]]
 path = ".github/workflows/safe-fork-gates.yml"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = ".gitleaks.toml"
@@ -74,11 +74,11 @@ issue = "NAK-902"
 
 [[approved_path]]
 path = ".nakama/upstream-divergences.toml"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "docs/fork-ci.md"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "mise.toml"
@@ -94,11 +94,11 @@ issue = "NAK-902"
 
 [[approved_path]]
 path = "scripts/validate-pr3-security-hardening.sh"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "scripts/validate-safe-fork-gates.sh"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "scripts/validate-upstream-compatibility.sh"
@@ -106,11 +106,11 @@ issue = "NAK-902"
 
 [[approved_path]]
 path = "tests/ci/fixtures/untrusted-metadata-blank-line.yml"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "tests/ci/test_divergence_manifest_attribution.sh"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "tests/ci/test_gitleaks_fingerprint_scope.sh"
@@ -130,11 +130,11 @@ issue = "NAK-902"
 
 [[approved_path]]
 path = "tests/ci/test_push_main_verification.sh"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "tests/ci/test_safe_fork_gates.sh"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "tests/ci/test_secret_scan_canary.sh"
