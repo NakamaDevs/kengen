@@ -47,8 +47,8 @@ Keep fork tokens read-only, secrets unavailable, and the required fork approval 
 [Canary 36105215480](https://github.com/NakamaDevs/kengen/actions/runs/36105215480) passed earlier CI and security gates on Ubuntu.
 It failed dependency review with `License findings are missing.` before Go tests and lint.
 Dependency review now downloads Go modules before scanning their licenses on fresh runners.
-A successful full hosted verification remains required.
-Require successful full verification and the aggregate before accepting the migration as operational.
+[Canary 36105844974](https://github.com/NakamaDevs/kengen/actions/runs/36105844974) passed full verification and the aggregate at `61959b6be080ec1a11b25a3d0bb84d12008a6dfb`.
+This validates the migration on a standard hosted Ubuntu runner.
 Then confirm regular, Dependabot, and fork pull request checks under their actual event contexts.
 A manual canary alone does not prove fork pull request behavior.
 Keep `safe-fork-gate` as the required aggregate check.
