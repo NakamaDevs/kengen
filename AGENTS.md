@@ -35,7 +35,9 @@ Use TDD and keep each commit small.
 Run the narrow upstream check before `mise run verify`.
 
 Do not run code from an untrusted fork on a persistent runner.
-GitHub Actions stay disabled until NAK-902 provides an approved runner boundary.
+GitHub Actions are enabled for independently reviewed NAK-1010 CI on standard public `ubuntu-24.04` runners.
+The deployment and release workflows remain manually disabled.
+CI enablement does not establish a successful hosted verification result.
 Never place credentials in prompts, fixtures, logs, commits, or pull requests.
 
 Use ASD-STE100 Simplified Technical English for reader-facing text.

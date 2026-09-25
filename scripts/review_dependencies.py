@@ -76,6 +76,9 @@ def main():
             config_path.write_text("{}\n")
             # Keep ambient Trivy filters from silently omitting findings.
             env = {k: v for k, v in os.environ.items() if not k.startswith("TRIVY_")}
+            # Trivy reads Go dependency licenses from the downloaded module sources.
+            # Prepare the same cache on fresh runners and fail before scanning on errors.
+            subprocess.run(["go", "mod", "download"], env=env, check=True)
             subprocess.run(["trivy", "--config", str(config_path), "fs", "--scanners", "vuln,license",
                             "--format", "json", "--list-all-pkgs", "--ignorefile", os.devnull,
                             "--ignore-policy", "", "--output", str(report_path), "--quiet", "."],

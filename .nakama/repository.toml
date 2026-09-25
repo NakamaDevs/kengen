@@ -30,8 +30,8 @@ router = "nakama-review-change"
 agent_ready = false
 
 [ci]
-actions_enabled = false
-reason = "NAK-902 defines the boundary. An administrator must enable Actions after independent review."
+actions_enabled = true
+reason = "NAK-1010 independently reviewed standard public Ubuntu CI. Actions are enabled; deployment and release workflows remain manually disabled."
 trusted_workflow = ".github/workflows/safe-fork-gates.yml"
 upstream_workflow_quarantine = ".github/upstream-workflows-disabled"
 

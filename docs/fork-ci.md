@@ -12,8 +12,9 @@ must allow only this repository and
 `NakamaDevs/kengen/.github/workflows/deploy.yml@refs/heads/main`.
 Its registration uses the existing `hdbmm` macOS ARM64 host and OrbStack.
 See [the deployment runbook](deploy/dokploy.md) for activation and rollback.
-Repository administrators must keep Actions disabled until they approve this boundary.
-NAK-902 does not enable Actions or change runner groups.
+GitHub Actions are enabled for NAK-1010 CI after independent review with no findings.
+GitHub reports `disabled_manually` for both `deploy.yml` and `release.yml`.
+CI enablement does not authorize deployment or release.
 
 NAK-1010 moves CI to fixed `ubuntu-24.04` standard GitHub-hosted runners.
 Every CI job requires `github.event.repository.visibility == 'public'` before runner assignment.
@@ -37,18 +38,21 @@ It runs one fixed shell check without checkout, repository code, or a token.
 The dependency result enters through an environment variable, without expression interpolation in shell commands.
 The previous metadata-only fork and Dependabot block is removed.
 Fresh hosted VMs provide the CI isolation previously missing under NAK-902 and OPS-283.
-Independent review must accept this boundary before an administrator enables Actions.
+Independent review accepted the CI boundary in commit `b40b2f08`.
 
-Before enablement, disable the `deploy.yml` and `release.yml` workflows through GitHub workflow controls.
+Keep `deploy.yml` and `release.yml` manually disabled through GitHub workflow controls.
 Preserve `KENGEN_DEPLOY_APPROVED` and all production environment and runner restrictions.
 Confirm repository visibility is public and allow the pinned checkout and Mise actions.
 Keep fork tokens read-only, secrets unavailable, and the required fork approval policy enabled.
-After review, enable Actions and dispatch a canary from the reviewed CI revision.
+[Canary 36105215480](https://github.com/NakamaDevs/kengen/actions/runs/36105215480) passed earlier CI and security gates on Ubuntu.
+It failed dependency review with `License findings are missing.` before Go tests and lint.
+Dependency review now downloads Go modules before scanning their licenses on fresh runners.
+A successful full hosted verification remains required.
 Require successful full verification and the aggregate before accepting the migration as operational.
 Then confirm regular, Dependabot, and fork pull request checks under their actual event contexts.
 A manual canary alone does not prove fork pull request behavior.
 Keep `safe-fork-gate` as the required aggregate check.
-This change does not enable Actions, edit deployment workflows, or change repository settings.
+This readiness record reflects verified Actions settings; it does not change workflows or repository settings.
 
 Keep every GitHub Action pinned to a full commit SHA.
 Pin local tools to exact versions in `mise.toml`.

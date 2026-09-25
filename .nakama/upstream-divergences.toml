@@ -70,7 +70,7 @@ issue = "NAK-902"
 
 [[approved_path]]
 path = ".nakama/repository.toml"
-issue = "NAK-902"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = ".nakama/upstream-divergences.toml"
@@ -206,15 +206,15 @@ issue = "NAK-908"
 
 [[approved_path]]
 path = "scripts/review_dependencies.py"
-issue = "NAK-911"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "tests/licenses/test_dependency_policy.py"
-issue = "NAK-911"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "docs/licenses/dependency-review.md"
-issue = "NAK-911"
+issue = "NAK-1010"
 
 [[approved_path]]
 path = "THIRD_PARTY_NOTICES.md"
@@ -319,3 +319,7 @@ issue = "NAK-903"
 [[approved_path]]
 path = "tests/viewer/model.test.cjs"
 issue = "NAK-903"
+
+[[approved_path]]
+path = "AGENTS.md"
+issue = "NAK-1010"

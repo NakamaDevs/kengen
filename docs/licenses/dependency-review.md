@@ -40,6 +40,12 @@ The pinned Trivy scan still checks vulnerabilities and licenses. The wrapper
 uses an empty Trivy config, no ignore file or ignore policy, and removes ambient
 `TRIVY_*` settings that could filter findings. Scanner errors fail the task.
 
+Before a live scan, the wrapper runs `go mod download` using the same environment as Trivy.
+[Trivy requires cached Go module sources](https://trivy.dev/docs/dev/coverage/language/golang/#license) to detect dependency licenses.
+This preparation also runs on fresh hosted runners. Download failures stop the gate before scanning.
+The wrapper does not download modules when evaluating a supplied `--report` file.
+Missing license findings still fail after preparation; no license exception changes.
+
 Every vulnerability fails, at every severity. Five identified notice licenses
 are permitted: Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, and MIT. Each must
 have the expected notice category, LOW severity, exact package metadata, and

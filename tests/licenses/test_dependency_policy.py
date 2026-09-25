@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from unittest.mock import patch
 import importlib.util
 from pathlib import Path
@@ -83,8 +84,15 @@ class PolicyTests(unittest.TestCase):
         self.assertTrue(policy.evaluate(data))
 
     def test_scanner_cannot_inherit_filters(self):
+        calls = []
+
         def scan(args, env, check):
+            calls.append(args[0])
             self.assertTrue(check)
+            if args[0] == "go":
+                self.assertEqual(args, ["go", "mod", "download"])
+                return
+            self.assertEqual(calls, ["go", "trivy"])
             self.assertFalse(any(k.startswith("TRIVY_") for k in env))
             self.assertEqual(args[args.index("--scanners") + 1], "vuln,license")
             self.assertEqual(args[args.index("--ignorefile") + 1], os.devnull)
@@ -94,10 +102,35 @@ class PolicyTests(unittest.TestCase):
         with patch.dict(os.environ, {"TRIVY_SEVERITY": "CRITICAL", "TRIVY_SKIP_FILES": "go.mod"}), patch.object(sys, "argv", ["review_dependencies.py"]), patch.object(subprocess, "run", side_effect=scan):
             self.assertEqual(policy.main(), 0)
 
-    def test_scanner_failure_fails(self):
-        with patch.object(sys, "argv", ["review_dependencies.py"]), patch.object(subprocess, "run", side_effect=subprocess.CalledProcessError(1, "trivy")):
+    def test_download_failure_prevents_scan(self):
+        with patch.object(sys, "argv", ["review_dependencies.py"]), patch.object(subprocess, "run", side_effect=subprocess.CalledProcessError(1, "go")) as run:
             with self.assertRaises(subprocess.CalledProcessError):
                 policy.main()
+            self.assertEqual(run.call_count, 1)
+            self.assertEqual(run.call_args.args[0], ["go", "mod", "download"])
+            self.assertTrue(run.call_args.kwargs["check"])
+
+    def test_scanner_failure_fails(self):
+        with patch.object(sys, "argv", ["review_dependencies.py"]), patch.object(subprocess, "run", side_effect=[None, subprocess.CalledProcessError(1, "trivy")]):
+            with self.assertRaises(subprocess.CalledProcessError):
+                policy.main()
+
+    def test_supplied_report_does_not_download_or_scan(self):
+        with tempfile.TemporaryDirectory() as folder:
+            report_path = Path(folder) / "report.json"
+            report_path.write_text(json.dumps(report()))
+            with patch.object(sys, "argv", ["review_dependencies.py", "--report", str(report_path)]), patch.object(subprocess, "run") as run:
+                self.assertEqual(policy.main(), 0)
+                run.assert_not_called()
+
+    def test_empty_licenses_after_preparation_still_fail(self):
+        def scan(args, **kwargs):
+            if args[0] == "trivy":
+                data = report()
+                data["Results"][1]["Licenses"] = []
+                Path(args[args.index("--output") + 1]).write_text(json.dumps(data))
+        with patch.object(sys, "argv", ["review_dependencies.py"]), patch.object(subprocess, "run", side_effect=scan):
+            self.assertEqual(policy.main(), 1)
 
     def test_missing_license_results_fail(self):
         data = report()
