@@ -30,6 +30,7 @@ run = [
   "bash tests/ci/test_safe_fork_gates.sh",
   "bash tests/ci/test_divergence_manifest_attribution.sh",
   "bash tests/ci/test_pr3_review_requirements.sh",
+  "python3 -B -m unittest discover -s tests/ci -p test_ticket_manifest.py",
   "bash tests/ci/test_pr3_security_hardening.sh",
   "bash tests/ci/test_push_main_verification.sh",
   "actionlint .github/workflows/*.yml",

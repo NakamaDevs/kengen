@@ -323,3 +323,15 @@ issue = "NAK-903"
 [[approved_path]]
 path = "AGENTS.md"
 issue = "NAK-1010"
+
+[[approved_path]]
+path = ".nakama/kaicho_delivery.py"
+issue = "NAK-1088"
+
+[[approved_path]]
+path = ".nakama/kaicho/delivery-profiles.md"
+issue = "NAK-1088"
+
+[[approved_path]]
+path = "tests/ci/test_ticket_manifest.py"
+issue = "NAK-1088"

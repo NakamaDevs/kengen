@@ -23,7 +23,7 @@ done < <(
     $1 == "issue" {
       gsub(/"/, "", $2)
       issue = $2
-      if (path != "" && issue ~ /^NAK-[0-9]+$/) print path
+      if (path != "" && issue ~ /^[A-Z][A-Z0-9]*-[1-9][0-9]*$/) print path
     }
   ' "${manifest_file}"
 )
