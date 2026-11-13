@@ -30,7 +30,11 @@ This repository is the public Kengen fork of `openfga/openfga`.
 Preserve upstream compatibility unless a Linear issue approves a divergence.
 
 Read `.nakama/repository.toml` and the linked Linear issue before edits.
-Use a pull request for every change to protected `main`.
+The ruleset on `main` requires a pull request and no approval.
+For a change that the owner assigned or authorized, open the pull request.
+Merge it yourself when `mise run verify` and the `Safe fork gates` workflow pass.
+Do not wait for a human approval on the `solo` route.
+A session that another agent started without that authorization stops at review.
 Use TDD and keep each commit small.
 Run the narrow upstream check before `mise run verify`.
 
